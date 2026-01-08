@@ -240,6 +240,41 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+window.submitVotes = async () => {
+  if (votes.includes(0)) {
+    alert("Devi votare tutti i cantanti");
+    return;
+  }
+let nickname = "";
+let votes = Array(30).fill(0);
+window.startVote = () => {
+  nickname = document.getElementById("nickname").value.trim();
+
+  if (!nickname) {
+    alert("Inserisci un nickname");
+    return;
+  }
+
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("vote").classList.remove("hidden");
+};
+input.oninput = e => {
+  votes[i] = Number(e.target.value);
+};
+
+  try {
+    await addDoc(collection(db, "votes"), {
+      nickname: nickname,
+      votes: votes,
+      time: Date.now()
+    });
+
+    alert("Voto inviato correttamente! 🎉");
+  } catch (e) {
+    alert("Errore nel salvataggio del voto");
+    console.error(e);
+  }
+};
 
 </script>
 
