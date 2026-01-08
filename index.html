@@ -11,7 +11,7 @@
       margin: 0;
       padding: 20px;
       background:
-        linear-gradient(rgba(10, 10, 40, 0.85), rgba(10, 10, 40, 0.85)),
+        linear-gradient(rgba(10,10,40,0.85), rgba(10,10,40,0.85)),
         url("Logo_Festival_di_Sanremo_2026.svg.png");
       background-size: cover;
       background-position: center;
@@ -19,82 +19,18 @@
       background-attachment: fixed;
     }
     @media (max-width: 768px) {
-      body {
-        background-size: contain;
-        background-position: top center;
-        padding-top: 160px;
-      }
+      body { background-size: contain; background-position: top center; padding-top: 160px; }
     }
-    h1, h2 {
-      text-align: center;
-    }
-    .login, .vote, .results {
-      max-width: 800px;
-      margin: auto;
-      background: rgba(255,255,255,0.05);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.4);
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-    }
-    button {
-      width: 100%;
-      padding: 14px;
-      background: gold;
-      color: #000;
-      border: none;
-      border-radius: 10px;
-      font-size: 18px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .box {
-      max-width: 900px;
-      margin: 30px auto;
-      background: rgba(20, 20, 60, 0.75);
-      backdrop-filter: blur(6px);
-      padding: 25px;
-      border-radius: 16px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.6);
-    }
-    .artist {
-      margin: 15px 0;
-    }
-    .artist label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: bold;
-    }
-    .artist input[type=range] {
-      width: 100%;
-    }
-    .score {
-      text-align: right;
-      font-size: 14px;
-      opacity: 0.8;
-    }
+    h1,h2 { text-align: center; }
+    .login, .vote, .results { max-width: 800px; margin: auto; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.4);}
+    input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: none; font-size: 16px; }
+    button { width: 100%; padding: 14px; background: gold; color: #000; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; font-weight: bold; margin-bottom:10px; }
+    .artist { margin: 15px 0; }
+    .artist label { display: block; margin-bottom: 6px; font-weight: bold; }
+    .artist input[type=range] { width: 100%; }
+    .score { text-align: right; font-size: 14px; opacity: 0.8; }
     .hidden { display: none; }
-    .bar {
-      background: linear-gradient(90deg, gold, orange);
-      height: 26px;
-      border-radius: 8px;
-      margin: 6px 0;
-      padding-left: 10px;
-      line-height: 26px;
-      color: #000;
-      font-weight: bold;
-      animation: grow 1.2s ease-out;
-    }
-    @keyframes grow {
-      from { width: 0; }
-    }
+    .bar { background: linear-gradient(90deg, gold, orange); height: 26px; border-radius: 8px; margin: 6px 0; padding-left: 10px; line-height: 26px; color: #000; font-weight: bold; transition: width 1.2s ease-out; }
   </style>
 </head>
 <body>
@@ -106,6 +42,7 @@
   <input id="nickname" placeholder="Nickname" />
   <input id="code" placeholder="Codice" />
   <button onclick="startVote()">Inizia a votare</button>
+  <button onclick="resetVotes()">Reset voti locali</button>
 </div>
 
 <div class="vote hidden" id="vote">
@@ -162,13 +99,8 @@
   function startVote() {
     nickname = document.getElementById("nickname").value.trim();
     const code = document.getElementById("code").value.trim();
-    if (!nickname || code !== SECRET_CODE) {
-      return alert("Nickname o codice errato");
-    }
-    if (votesData[nickname]) {
-      return alert("Hai già votato!");
-    }
-
+    if (!nickname || code !== SECRET_CODE) return alert("Nickname o codice errato");
+    if (votesData[nickname]) return alert("Hai già votato!");
     document.getElementById("login").classList.add("hidden");
     document.getElementById("vote").classList.remove("hidden");
     renderArtists();
@@ -176,7 +108,7 @@
 
   function renderArtists() {
     artistsDiv.innerHTML = "";
-    artists.forEach((a, i) => {
+    artists.forEach((a,i) => {
       const div = document.createElement("div");
       div.className = "artist";
       div.innerHTML = `
@@ -192,51 +124,51 @@
   }
 
   async function submitVotes() {
-    const userVotes = artists.map((_, i) => +document.getElementById(`a${i}`).value);
+    const userVotes = artists.map((_,i)=> +document.getElementById(`a${i}`).value);
     if (userVotes.includes(0)) return alert("Devi votare tutti i cantanti");
-
     votesData[nickname] = userVotes;
     localStorage.setItem("votes", JSON.stringify(votesData));
-
     document.getElementById("vote").classList.add("hidden");
 
-    // Salvataggio su Firebase
     try {
-      await addDoc(collection(db, "votes"), {
-        nickname: nickname,
-        votes: userVotes,
-        time: Date.now()
-      });
+      await addDoc(collection(db,"votes"), { nickname, votes:userVotes, time:Date.now() });
       console.log("Voto inviato correttamente su Firebase!");
-    } catch (e) {
-      console.error("Errore Firebase:", e);
-      alert("Errore nel salvataggio su Firebase");
-    }
+    } catch(e) { console.error("Errore Firebase:",e); alert("Errore nel salvataggio su Firebase"); }
 
     showResults();
   }
 
   function showResults() {
     rankingDiv.innerHTML = "";
-    const totals = artists.map((a, i) => {
-      let sum = 0, count = 0;
-      Object.values(votesData).forEach(v => { sum += v[i]; count++; });
-      return { name: a, avg: sum / count };
-    }).sort((a,b) => b.avg - a.avg);
+    const totals = artists.map((a,i)=>{
+      let sum=0,count=0;
+      Object.values(votesData).forEach(v=>{ sum+=v[i]; count++; });
+      return {name:a, avg: sum/count};
+    }).sort((a,b)=>b.avg-a.avg);
 
-    totals.forEach(t => {
+    totals.forEach(t=>{
       const bar = document.createElement("div");
       bar.className = "bar";
-      bar.style.width = (t.avg / 10 * 100) + "%";
-      bar.textContent = `${t.name} – ${t.avg.toFixed(2)}`;
+      bar.style.width = "0%";
       rankingDiv.appendChild(bar);
+      setTimeout(()=>{ bar.style.width = (t.avg/10*100)+"%"; bar.textContent = `${t.name} – ${t.avg.toFixed(2)}`; }, 50);
     });
 
     document.getElementById("results").classList.remove("hidden");
   }
 
+  function resetVotes() {
+    if(confirm("Vuoi davvero resettare tutti i voti locali?")) {
+      localStorage.removeItem("votes");
+      votesData = {};
+      alert("Voti locali resettati!");
+      window.location.reload();
+    }
+  }
+
   window.startVote = startVote;
   window.submitVotes = submitVotes;
+  window.resetVotes = resetVotes;
 </script>
 
 </body>
