@@ -56,11 +56,11 @@
   <div id="ranking"></div>
 </div>
 
-<script type="module">
+<!-- Firebase UMD compat -->
+<script src="https://www.gstatic.com/firebasejs/10.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.6.1/firebase-firestore-compat.js"></script>
+<script>
   // ----------------- Firebase -----------------
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.1/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.6.1/firebase-firestore.js";
-
   const firebaseConfig = {
     apiKey: "AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE",
     authDomain: "sanremo-2026.firebaseapp.com",
@@ -70,8 +70,8 @@
     appId: "1:585160817288:web:71c4552fc2cfd73c9dfd3d"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
   // ----------------- Dati e logica -----------------
   const SECRET_CODE = "SANREMO26";
@@ -131,7 +131,7 @@
     document.getElementById("vote").classList.add("hidden");
 
     try {
-      await addDoc(collection(db,"votes"), { nickname, votes:userVotes, time:Date.now() });
+      await db.collection("votes").add({ nickname, votes: userVotes, time: Date.now() });
       console.log("Voto inviato correttamente su Firebase!");
     } catch(e) { console.error("Errore Firebase:",e); alert("Errore nel salvataggio su Firebase"); }
 
