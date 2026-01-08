@@ -41,14 +41,14 @@
   <h2>Inserisci i dati</h2>
   <input id="nickname" placeholder="Nickname" />
   <input id="code" placeholder="Codice" />
-  <button onclick="startVote()">Inizia a votare</button>
-  <button onclick="resetVotes()">Reset voti locali</button>
+  <button id="btnStart">Inizia a votare</button>
+  <button id="btnReset">Reset voti locali</button>
 </div>
 
 <div class="vote hidden" id="vote">
   <h2>Vota tutti i cantanti (1–10)</h2>
   <div id="artists"></div>
-  <button onclick="submitVotes()">Invia voti</button>
+  <button id="btnSubmit">Invia voti</button>
 </div>
 
 <div class="results hidden" id="results">
@@ -60,8 +60,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.6.1/firebase-firestore-compat.js"></script>
 <script>
-window.onload = function() {
-
   // ----------------- Firebase -----------------
   const firebaseConfig = {
     apiKey: "AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE",
@@ -95,22 +93,19 @@ window.onload = function() {
   let votesData = JSON.parse(localStorage.getItem("votes") || "{}");
   let nickname = "";
 
+  const loginDiv = document.getElementById("login");
+  const voteDiv = document.getElementById("vote");
   const artistsDiv = document.getElementById("artists");
   const rankingDiv = document.getElementById("ranking");
 
   function startVote() {
     nickname = document.getElementById("nickname").value.trim();
     const code = document.getElementById("code").value.trim();
-    if (!nickname || code !== SECRET_CODE) {
-      alert("Nickname o codice errato");
-      return;
-    }
-    if (votesData[nickname]) {
-      alert("Hai già votato!");
-      return;
-    }
-    document.getElementById("login").classList.add("hidden");
-    document.getElementById("vote").classList.remove("hidden");
+    if (!nickname || code !== SECRET_CODE) { alert("Nickname o codice errato"); return; }
+    if (votesData[nickname]) { alert("Hai già votato!"); return; }
+
+    loginDiv.classList.add("hidden");
+    voteDiv.classList.remove("hidden");
     renderArtists();
   }
 
@@ -137,7 +132,7 @@ window.onload = function() {
 
     votesData[nickname] = userVotes;
     localStorage.setItem("votes", JSON.stringify(votesData));
-    document.getElementById("vote").classList.add("hidden");
+    voteDiv.classList.add("hidden");
 
     try {
       db.collection("votes").add({ nickname, votes: userVotes, time: Date.now() });
@@ -178,12 +173,11 @@ window.onload = function() {
     }
   }
 
-  // Collega funzioni ai bottoni
-  window.startVote = startVote;
-  window.submitVotes = submitVotes;
-  window.resetVotes = resetVotes;
-};
-</script>
+  // ⚡ Colleghiamo i bottoni ai listener
+  document.getElementById("btnStart").addEventListener("click", startVote);
+  document.getElementById("btnReset").addEventListener("click", resetVotes);
+  document.getElementById("btnSubmit").addEventListener("click", submitVotes);
 
+</script>
 </body>
 </html>
