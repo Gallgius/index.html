@@ -5,31 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sanremo – Votazione</title>
   <style>
-   body {
-  font-family: Arial, sans-serif;
-  color: white;
-  margin: 0;
-  padding: 20px;
-
-  background:
-    linear-gradient(
-      rgba(10, 10, 40, 0.85),
-      rgba(10, 10, 40, 0.85)
-    ),
-    url("Logo_Festival_di_Sanremo_2026.svg.png");
-
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-}
-@media (max-width: 768px) {
-  body {
-    background-size: contain;
-    background-position: top center;
-    padding-top: 160px;
-  }
-}
+    body {
+      font-family: Arial, sans-serif;
+      color: white;
+      margin: 0;
+      padding: 20px;
+      background:
+        linear-gradient(rgba(10, 10, 40, 0.85), rgba(10, 10, 40, 0.85)),
+        url("Logo_Festival_di_Sanremo_2026.svg.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+    @media (max-width: 768px) {
+      body {
+        background-size: contain;
+        background-position: top center;
+        padding-top: 160px;
+      }
+    }
     h1, h2 {
       text-align: center;
     }
@@ -61,14 +56,14 @@
       font-weight: bold;
     }
     .box {
-  max-width: 900px;
-  margin: 30px auto;
-  background: rgba(20, 20, 60, 0.75);
-  backdrop-filter: blur(6px);
-  padding: 25px;
-  border-radius: 16px;
-  box-shadow: 0 0 30px rgba(0,0,0,0.6);
-}
+      max-width: 900px;
+      margin: 30px auto;
+      background: rgba(20, 20, 60, 0.75);
+      backdrop-filter: blur(6px);
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.6);
+    }
     .artist {
       margin: 15px 0;
     }
@@ -124,160 +119,125 @@
   <div id="ranking"></div>
 </div>
 
-<script>
-const SECRET_CODE = "SANREMO26"; // CAMBIA QUI IL CODICE
+<script type="module">
+  // ----------------- Firebase -----------------
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.1/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.6.1/firebase-firestore.js";
 
-const artists = [
-"Arisa – Magica favola",
-"Bambole di Pezza – Resta con me",
-"Chiello – Ti penso sempre",
-"Dargen D'Amico – AI AI",
-"Ditonellapiaga – Che fastidio!",
-"Eddie Brock – Avvoltoi",
-"Elettra Lamborghini – Voilà",
-"Enrico Nigiotti – Ogni volta che non so volare",
-"Ermal Meta – Stella stellina",
-"Fedez & Marco Masini – Male necessario",
-"Francesco Renga – Il meglio di me",
-"Fulminacci – Stupida sfortuna",
-"J-Ax – Italia",
-"LDA & Aka7even – Poesie clandestine",
-"Leo Gassmann – Naturale",
-"Levante – Sei tu",
-"Luchè – Labirinto",
-"Malika Ayane – Animali notturni",
-"Mara Sattei – Le cose che non sai di me",
-"Maria Antonietta & Colombre – La felicità e basta",
-"Michele Bravi – Prima o poi",
-"Nayt – Prima che",
-"Patty Pravo – Opera",
-"Raf – Ora e per sempre",
-"Sal Da Vinci – Per sempre sì",
-"Samurai Jay – Ossessione",
-"Sayf – Tu mi piaci tanto",
-"Serena Brancale – Qui con me",
-"Tommaso Paradiso – I romantici",
-"Tredici Pietro – Uomo che cade"
-];
+  const firebaseConfig = {
+    apiKey: "AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE",
+    authDomain: "sanremo-2026.firebaseapp.com",
+    projectId: "sanremo-2026",
+    storageBucket: "sanremo-2026.appspot.com",
+    messagingSenderId: "585160817288",
+    appId: "1:585160817288:web:71c4552fc2cfd73c9dfd3d"
+  };
 
-let votes = JSON.parse(localStorage.getItem("votes") || "{}");
-
-function startVote() {
-  const nick = nickname.value.trim();
-  const code = document.getElementById("code").value.trim();
-  if (!nick || code !== SECRET_CODE) {
-    alert("Nickname o codice errato");
-    return;
-  }
-  if (votes[nick]) {
-    alert("Hai già votato!");
-    return;
-  }
-  login.classList.add("hidden");
-  vote.classList.remove("hidden");
-  renderArtists();
-}
-
-function renderArtists() {
-  artists.forEach((a, i) => {
-    const div = document.createElement("div");
-    div.className = "artist";
-    div.innerHTML = `<label>${a}</label>
-      <input type="range" min="1" max="10" value="1" id="a${i}" />
-      <div class="score">Voto: <span id="s${i}">1</span></div>`;
-    artistsDiv.appendChild(div);
-    div.querySelector("input").oninput = e => {
-      div.querySelector("span").textContent = e.target.value;
-    };
-  });
-}
-
-const artistsDiv = document.getElementById("artists");
-
-function submitVotes() {
-  const nick = nickname.value.trim();
-  votes[nick] = artists.map((_, i) => +document.getElementById(`a${i}`).value);
-  localStorage.setItem("votes", JSON.stringify(votes));
-  vote.classList.add("hidden");
-  showResults();
-}
-
-function showResults() {
-  results.classList.remove("hidden");
-  const totals = artists.map((a, i) => {
-    let sum = 0, count = 0;
-    Object.values(votes).forEach(v => {
-      sum += v[i]; count++;
-    });
-    return { name: a, avg: sum / count };
-  }).sort((a,b)=>b.avg-a.avg);
-
-  totals.forEach(t => {
-    const bar = document.createElement("div");
-    bar.className = "bar";
-    bar.style.width = (t.avg * 8) + "%";
-    bar.textContent = `${t.name} – ${t.avg.toFixed(2)}`;
-    ranking.appendChild(bar);
-  });
-}
-  <script type="module">
-
- // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE",
-  authDomain: "sanremo-2026.firebaseapp.com",
-  projectId: "sanremo-2026",
-  storageBucket: "sanremo-2026.firebasestorage.app",
-  messagingSenderId: "585160817288",
-  appId: "1:585160817288:web:71c4552fc2cfd73c9dfd3d"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+  const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-window.submitVotes = async () => {
-  if (votes.includes(0)) {
-    alert("Devi votare tutti i cantanti");
-    return;
+
+  // ----------------- Dati e logica -----------------
+  const SECRET_CODE = "SANREMO26";
+  const artists = [
+    "Arisa – Magica favola","Bambole di Pezza – Resta con me","Chiello – Ti penso sempre",
+    "Dargen D'Amico – AI AI","Ditonellapiaga – Che fastidio!","Eddie Brock – Avvoltoi",
+    "Elettra Lamborghini – Voilà","Enrico Nigiotti – Ogni volta che non so volare",
+    "Ermal Meta – Stella stellina","Fedez & Marco Masini – Male necessario",
+    "Francesco Renga – Il meglio di me","Fulminacci – Stupida sfortuna",
+    "J-Ax – Italia","LDA & Aka7even – Poesie clandestine","Leo Gassmann – Naturale",
+    "Levante – Sei tu","Luchè – Labirinto","Malika Ayane – Animali notturni",
+    "Mara Sattei – Le cose che non sai di me","Maria Antonietta & Colombre – La felicità e basta",
+    "Michele Bravi – Prima o poi","Nayt – Prima che","Patty Pravo – Opera",
+    "Raf – Ora e per sempre","Sal Da Vinci – Per sempre sì","Samurai Jay – Ossessione",
+    "Sayf – Tu mi piaci tanto","Serena Brancale – Qui con me",
+    "Tommaso Paradiso – I romantici","Tredici Pietro – Uomo che cade"
+  ];
+
+  let votesData = JSON.parse(localStorage.getItem("votes") || "{}");
+  let nickname = "";
+
+  const artistsDiv = document.getElementById("artists");
+  const rankingDiv = document.getElementById("ranking");
+
+  function startVote() {
+    nickname = document.getElementById("nickname").value.trim();
+    const code = document.getElementById("code").value.trim();
+    if (!nickname || code !== SECRET_CODE) {
+      return alert("Nickname o codice errato");
+    }
+    if (votesData[nickname]) {
+      return alert("Hai già votato!");
+    }
+
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("vote").classList.remove("hidden");
+    renderArtists();
   }
-let nickname = "";
-let votes = Array(30).fill(0);
-window.startVote = () => {
-  nickname = document.getElementById("nickname").value.trim();
 
-  if (!nickname) {
-    alert("Inserisci un nickname");
-    return;
+  function renderArtists() {
+    artistsDiv.innerHTML = "";
+    artists.forEach((a, i) => {
+      const div = document.createElement("div");
+      div.className = "artist";
+      div.innerHTML = `
+        <label>${a}</label>
+        <input type="range" min="1" max="10" value="1" id="a${i}" />
+        <div class="score">Voto: <span id="s${i}">1</span></div>
+      `;
+      artistsDiv.appendChild(div);
+      div.querySelector("input").oninput = e => {
+        document.getElementById(`s${i}`).textContent = e.target.value;
+      };
+    });
   }
 
-  document.getElementById("login").classList.add("hidden");
-  document.getElementById("vote").classList.remove("hidden");
-};
-input.oninput = e => {
-  votes[i] = Number(e.target.value);
-};
+  async function submitVotes() {
+    const userVotes = artists.map((_, i) => +document.getElementById(`a${i}`).value);
+    if (userVotes.includes(0)) return alert("Devi votare tutti i cantanti");
 
-  try {
-    await addDoc(collection(db, "votes"), {
-      nickname: nickname,
-      votes: votes,
-      time: Date.now()
+    votesData[nickname] = userVotes;
+    localStorage.setItem("votes", JSON.stringify(votesData));
+
+    document.getElementById("vote").classList.add("hidden");
+
+    // Salvataggio su Firebase
+    try {
+      await addDoc(collection(db, "votes"), {
+        nickname: nickname,
+        votes: userVotes,
+        time: Date.now()
+      });
+      console.log("Voto inviato correttamente su Firebase!");
+    } catch (e) {
+      console.error("Errore Firebase:", e);
+      alert("Errore nel salvataggio su Firebase");
+    }
+
+    showResults();
+  }
+
+  function showResults() {
+    rankingDiv.innerHTML = "";
+    const totals = artists.map((a, i) => {
+      let sum = 0, count = 0;
+      Object.values(votesData).forEach(v => { sum += v[i]; count++; });
+      return { name: a, avg: sum / count };
+    }).sort((a,b) => b.avg - a.avg);
+
+    totals.forEach(t => {
+      const bar = document.createElement("div");
+      bar.className = "bar";
+      bar.style.width = (t.avg / 10 * 100) + "%";
+      bar.textContent = `${t.name} – ${t.avg.toFixed(2)}`;
+      rankingDiv.appendChild(bar);
     });
 
-    alert("Voto inviato correttamente! 🎉");
-  } catch (e) {
-    alert("Errore nel salvataggio del voto");
-    console.error(e);
+    document.getElementById("results").classList.remove("hidden");
   }
-};
 
+  window.startVote = startVote;
+  window.submitVotes = submitVotes;
 </script>
 
-</script>
 </body>
 </html>
