@@ -1,50 +1,33 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sanremo – Votazione</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      color: white;
-      margin: 0;
-      padding: 20px;
-      background: linear-gradient(rgba(10,10,40,0.85), rgba(10,10,40,0.85)),
-                  url("Logo_Festival_di_Sanremo_2026.svg.png");
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-    }
-    @media (max-width:768px){body{background-size:contain;background-position:top center;padding-top:160px}}
-    h1,h2{text-align:center;}
-    .login, .vote, .results{
-      max-width:800px;
-      margin:auto;
-      background:rgba(255,255,255,0.05);
-      padding:20px;
-      border-radius:12px;
-      box-shadow:0 0 20px rgba(0,0,0,0.4);
-    }
-    input{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:none;font-size:16px;}
-    button{width:100%;padding:14px;background:gold;color:#000;border:none;border-radius:10px;font-size:18px;cursor:pointer;font-weight:bold;margin-bottom:10px;}
-    .artist{margin:15px 0;}
-    .artist label{display:block;margin-bottom:6px;font-weight:bold;}
-    .artist input[type=range]{width:100%;}
-    .score{text-align:right;font-size:14px;opacity:0.8;}
-    .hidden{display:none;}
-    .bar{background:linear-gradient(90deg,gold,orange);height:26px;border-radius:8px;margin:6px 0;padding-left:10px;line-height:26px;color:#000;font-weight:bold;transition:width 1.2s ease-out;}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sanremo – Votazione Minima</title>
+<style>
+body{font-family:Arial,sans-serif;color:white;margin:0;padding:20px;
+background:linear-gradient(rgba(10,10,40,0.85),rgba(10,10,40,0.85)),url("Logo_Festival_di_Sanremo_2026.svg.png");
+background-size:cover;background-position:center;background-repeat:no-repeat;}
+h1,h2{text-align:center;}
+.login,.vote,.results{max-width:800px;margin:auto;background:rgba(255,255,255,0.05);padding:20px;border-radius:12px;box-shadow:0 0 20px rgba(0,0,0,0.4);}
+input{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:none;font-size:16px;}
+button{width:100%;padding:14px;background:gold;color:#000;border:none;border-radius:10px;font-size:18px;cursor:pointer;font-weight:bold;margin-bottom:10px;}
+.artist{margin:15px 0;}
+.artist label{display:block;margin-bottom:6px;font-weight:bold;}
+.artist input[type=range]{width:100%;}
+.score{text-align:right;font-size:14px;opacity:0.8;}
+.hidden{display:none;}
+.bar{background:linear-gradient(90deg,gold,orange);height:26px;border-radius:8px;margin:6px 0;padding-left:10px;line-height:26px;color:#000;font-weight:bold;transition:width 1s ease-out;}
+</style>
 </head>
 <body>
 
-<h1>🎤 Sanremo – Votazione Finale</h1>
+<h1>🎤 Sanremo – Votazione</h1>
 
 <div class="login" id="login">
   <h2>Inserisci i dati</h2>
-  <input id="nickname" placeholder="Nickname" />
-  <input id="code" placeholder="Codice" />
+  <input id="nickname" placeholder="Nickname">
+  <input id="code" placeholder="Codice">
   <button id="btnStart">Inizia a votare</button>
   <button id="btnReset">Reset voti locali</button>
 </div>
@@ -60,125 +43,98 @@
   <div id="ranking"></div>
 </div>
 
-<!-- Firebase UMD compat -->
-<script src="https://www.gstatic.com/firebasejs/10.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.6.1/firebase-firestore-compat.js"></script>
-
 <script>
-  // ----------------- Firebase -----------------
-  const firebaseConfig = {
-    apiKey: "AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE",
-    authDomain: "sanremo-2026.firebaseapp.com",
-    projectId: "sanremo-2026",
-    storageBucket: "sanremo-2026.appspot.com",
-    messagingSenderId: "585160817288",
-    appId: "1:585160817288:web:71c4552fc2cfd73c9dfd3d"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+// ----------------- Config -----------------
+const SECRET_CODE = "SANREMO26";
+const artists = [
+  "Arisa – Magica favola","Bambole di Pezza – Resta con me","Chiello – Ti penso sempre",
+  "Dargen D'Amico – AI AI","Ditonellapiaga – Che fastidio!","Eddie Brock – Avvoltoi",
+  "Elettra Lamborghini – Voilà","Enrico Nigiotti – Ogni volta che non so volare",
+  "Ermal Meta – Stella stellina","Fedez & Marco Masini – Male necessario",
+  "Francesco Renga – Il meglio di me","Fulminacci – Stupida sfortuna",
+  "J-Ax – Italia","LDA & Aka7even – Poesie clandestine","Leo Gassmann – Naturale",
+  "Levante – Sei tu","Luchè – Labirinto","Malika Ayane – Animali notturni",
+  "Mara Sattei – Le cose che non sai di me","Maria Antonietta & Colombre – La felicità e basta",
+  "Michele Bravi – Prima o poi","Nayt – Prima che","Patty Pravo – Opera",
+  "Raf – Ora e per sempre","Sal Da Vinci – Per sempre sì","Samurai Jay – Ossessione",
+  "Sayf – Tu mi piaci tanto","Serena Brancale – Qui con me",
+  "Tommaso Paradiso – I romantici","Tredici Pietro – Uomo che cade"
+];
 
-  // ----------------- Variabili -----------------
-  const SECRET_CODE = "SANREMO26";
-  const artists = [
-    "Arisa – Magica favola","Bambole di Pezza – Resta con me","Chiello – Ti penso sempre",
-    "Dargen D'Amico – AI AI","Ditonellapiaga – Che fastidio!","Eddie Brock – Avvoltoi",
-    "Elettra Lamborghini – Voilà","Enrico Nigiotti – Ogni volta che non so volare",
-    "Ermal Meta – Stella stellina","Fedez & Marco Masini – Male necessario",
-    "Francesco Renga – Il meglio di me","Fulminacci – Stupida sfortuna",
-    "J-Ax – Italia","LDA & Aka7even – Poesie clandestine","Leo Gassmann – Naturale",
-    "Levante – Sei tu","Luchè – Labirinto","Malika Ayane – Animali notturni",
-    "Mara Sattei – Le cose che non sai di me","Maria Antonietta & Colombre – La felicità e basta",
-    "Michele Bravi – Prima o poi","Nayt – Prima che","Patty Pravo – Opera",
-    "Raf – Ora e per sempre","Sal Da Vinci – Per sempre sì","Samurai Jay – Ossessione",
-    "Sayf – Tu mi piaci tanto","Serena Brancale – Qui con me",
-    "Tommaso Paradiso – I romantici","Tredici Pietro – Uomo che cade"
-  ];
+let votesData = JSON.parse(localStorage.getItem("votes")||"{}");
+let nickname = "";
 
-  let votesData = JSON.parse(localStorage.getItem("votes") || "{}");
-  let nickname = "";
+// ----------------- Elements -----------------
+const loginDiv = document.getElementById("login");
+const voteDiv = document.getElementById("vote");
+const artistsDiv = document.getElementById("artists");
+const rankingDiv = document.getElementById("ranking");
 
-  const loginDiv = document.getElementById("login");
-  const voteDiv = document.getElementById("vote");
-  const artistsDiv = document.getElementById("artists");
-  const rankingDiv = document.getElementById("ranking");
+// ----------------- Functions -----------------
+function startVote(){
+  nickname = document.getElementById("nickname").value.trim();
+  const code = document.getElementById("code").value.trim();
+  if(!nickname||code!==SECRET_CODE){alert("Nickname o codice errato");return;}
+  if(votesData[nickname]){alert("Hai già votato!");return;}
+  loginDiv.classList.add("hidden");
+  voteDiv.classList.remove("hidden");
+  renderArtists();
+}
 
-  // ----------------- Funzioni -----------------
-  function startVote() {
-    nickname = document.getElementById("nickname").value.trim();
-    const code = document.getElementById("code").value.trim();
-    if (!nickname || code !== SECRET_CODE) { alert("Nickname o codice errato"); return; }
-    if (votesData[nickname]) { alert("Hai già votato!"); return; }
-    loginDiv.classList.add("hidden");
-    voteDiv.classList.remove("hidden");
-    renderArtists();
+function renderArtists(){
+  artistsDiv.innerHTML="";
+  artists.forEach((a,i)=>{
+    const div = document.createElement("div");
+    div.className="artist";
+    div.innerHTML=`<label>${a}</label>
+    <input type="range" min="1" max="10" value="1" id="a${i}">
+    <div class="score">Voto: <span id="s${i}">1</span></div>`;
+    artistsDiv.appendChild(div);
+    div.querySelector("input").oninput=e=>{document.getElementById(`s${i}`).textContent=e.target.value;}
+  });
+}
+
+function submitVotes(){
+  const userVotes = artists.map((_,i)=>+document.getElementById(`a${i}`).value);
+  if(userVotes.includes(0)){alert("Devi votare tutti i cantanti");return;}
+  votesData[nickname]=userVotes;
+  localStorage.setItem("votes",JSON.stringify(votesData));
+  voteDiv.classList.add("hidden");
+  showResults();
+}
+
+function showResults(){
+  rankingDiv.innerHTML="";
+  const totals = artists.map((a,i)=>{
+    let sum=0,count=0;
+    Object.values(votesData).forEach(v=>{sum+=v[i];count++;});
+    return {name:a,avg:sum/count};
+  }).sort((a,b)=>b.avg-a.avg);
+  totals.forEach(t=>{
+    const bar=document.createElement("div");
+    bar.className="bar";
+    bar.style.width="0%";
+    rankingDiv.appendChild(bar);
+    setTimeout(()=>{bar.style.width=(t.avg/10*100)+"%"; bar.textContent=`${t.name} – ${t.avg.toFixed(2)}`;},50);
+  });
+  document.getElementById("results").classList.remove("hidden");
+}
+
+function resetVotes(){
+  if(confirm("Vuoi resettare tutti i voti locali?")){
+    localStorage.removeItem("votes");
+    votesData={};
+    alert("Voti locali resettati!");
+    window.location.reload();
   }
+}
 
-  function renderArtists() {
-    artistsDiv.innerHTML = "";
-    artists.forEach((a,i)=>{
-      const div = document.createElement("div");
-      div.className = "artist";
-      div.innerHTML = `
-        <label>${a}</label>
-        <input type="range" min="1" max="10" value="1" id="a${i}" />
-        <div class="score">Voto: <span id="s${i}">1</span></div>
-      `;
-      artistsDiv.appendChild(div);
-      div.querySelector("input").oninput = e=>{
-        document.getElementById(`s${i}`).textContent = e.target.value;
-      };
-    });
-  }
-
-  async function submitVotes() {
-    const userVotes = artists.map((_,i)=> +document.getElementById(`a${i}`).value);
-    if(userVotes.includes(0)){ alert("Devi votare tutti i cantanti"); return; }
-    votesData[nickname] = userVotes;
-    localStorage.setItem("votes", JSON.stringify(votesData));
-    voteDiv.classList.add("hidden");
-
-    try{
-      db.collection("votes").add({nickname, votes: userVotes, time:Date.now()});
-      console.log("Voto inviato correttamente su Firebase!");
-    } catch(e){ console.error("Errore Firebase:",e); alert("Errore nel salvataggio su Firebase"); }
-
-    showResults();
-  }
-
-  function showResults(){
-    rankingDiv.innerHTML="";
-    const totals = artists.map((a,i)=>{
-      let sum=0,count=0;
-      Object.values(votesData).forEach(v=>{ sum+=v[i]; count++; });
-      return {name:a, avg: sum/count};
-    }).sort((a,b)=>b.avg-a.avg);
-
-    totals.forEach(t=>{
-      const bar=document.createElement("div");
-      bar.className="bar";
-      bar.style.width="0%";
-      rankingDiv.appendChild(bar);
-      setTimeout(()=>{bar.style.width=(t.avg/10*100)+"%"; bar.textContent=`${t.name} – ${t.avg.toFixed(2)}`;},50);
-    });
-
-    document.getElementById("results").classList.remove("hidden");
-  }
-
-  function resetVotes(){
-    if(confirm("Vuoi davvero resettare tutti i voti locali?")){
-      localStorage.removeItem("votes");
-      votesData={};
-      alert("Voti locali resettati!");
-      window.location.reload();
-    }
-  }
-
-  // ----------------- Colleghiamo i bottoni -----------------
-  document.getElementById("btnStart").addEventListener("click", startVote);
-  document.getElementById("btnReset").addEventListener("click", resetVotes);
-  document.getElementById("btnSubmit").addEventListener("click", submitVotes);
-
+// ----------------- Event Listeners -----------------
+document.getElementById("btnStart").addEventListener("click",startVote);
+document.getElementById("btnSubmit").addEventListener("click",submitVotes);
+document.getElementById("btnReset").addEventListener("click",resetVotes);
 </script>
+
 </body>
 </html>
 
