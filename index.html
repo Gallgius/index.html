@@ -60,6 +60,20 @@
 <script src="https://www.gstatic.com/firebasejs/10.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.6.1/firebase-firestore-compat.js"></script>
 <script>
+  window.startVote = () => {
+  console.log("startVote cliccato");
+
+  nickname = document.getElementById("nickname").value.trim();
+
+  if (!nickname) {
+    alert("Inserisci un nickname");
+    return;
+  }
+
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("vote").classList.remove("hidden");
+};
+
   // ----------------- Firebase -----------------
   const firebaseConfig = {
     apiKey: "AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE",
