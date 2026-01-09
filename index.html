@@ -1,188 +1,165 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Sanremo – Votazione Mobile</title>
-<style>
-body{
-  font-family:Arial,sans-serif;
-  color:white;
-  margin:0;
-  padding:20px 20px 200px 20px; /* padding-bottom per tastiera mobile */
-  background:linear-gradient(rgba(10,10,40,0.85),rgba(10,10,40,0.85)),url("Logo_Festival_di_Sanremo_2026.svg.png");
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
-}
-h1,h2{text-align:center;}
-.login,.vote,.results{
-  max-width:800px;
-  margin:auto;
-  background:rgba(255,255,255,0.05);
-  padding:20px;
-  border-radius:12px;
-  box-shadow:0 0 20px rgba(0,0,0,0.4);
-}
-input{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:none;font-size:16px;}
-input[type=range]{
-  width:100%;
-  -webkit-appearance:none;
-  appearance:none;
-  touch-action: pan-x;
-}
-button{
-  width:100%;
-  padding:18px;
-  background:gold;
-  color:#000;
-  border:none;
-  border-radius:10px;
-  font-size:18px;
-  font-weight:bold;
-  cursor:pointer;
-  margin-bottom:10px;
-  position:relative;
-  z-index:10;
-}
-.artist{margin:15px 0;}
-.artist label{display:block;margin-bottom:6px;font-weight:bold;}
-.score{text-align:right;font-size:14px;opacity:0.8;}
-.hidden{display:none;}
-.bar{
-  background:linear-gradient(90deg,gold,orange);
-  height:26px;
-  border-radius:8px;
-  margin:6px 0;
-  padding-left:10px;
-  line-height:26px;
-  color:#000;
-  font-weight:bold;
-  transition:width 1s ease-out;
-}
-@media (max-width:768px){
-  body{padding-top:120px;}
-  button{padding:20px;font-size:20px;}
-}
-</style>
+  <meta charset="UTF-8">
+  <title>Sanremo – Votazione Finale</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #0b0b1e, #1c1c3c);
+      color: white;
+      padding: 20px;
+    }
+    h1, h2 { text-align: center; }
+    .box {
+      max-width: 900px;
+      margin: auto;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 14px;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+    }
+    button {
+      background: gold;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .artist { margin: 14px 0; }
+    .bar {
+      background: linear-gradient(90deg, gold, orange);
+      height: 26px;
+      border-radius: 8px;
+      margin: 6px 0;
+      padding-left: 10px;
+      line-height: 26px;
+      color: black;
+      font-weight: bold;
+      animation: grow 1.2s ease-out;
+    }
+    @keyframes grow { from { width: 0; } }
+    .hidden { display: none; }
+  </style>
 </head>
 <body>
 
-<h1>🎤 Sanremo – Votazione Mobile</h1>
+<h1>🎤 Sanremo – Votazione Finale</h1>
 
-<div class="login" id="login">
-  <h2>Inserisci i dati</h2>
+<div class="box" id="login">
+  <h2>Accesso</h2>
   <input id="nickname" placeholder="Nickname">
   <input id="code" placeholder="Codice">
-  <button id="btnStart">Inizia a votare</button>
-  <button id="btnReset">Reset voti locali</button>
+  <button onclick="start()">Inizia</button>
 </div>
 
-<div class="vote hidden" id="vote">
+<div class="box hidden" id="vote">
   <h2>Vota tutti i cantanti (1–10)</h2>
   <div id="artists"></div>
-  <button id="btnSubmit">Invia voti</button>
+  <button onclick="sendVotes()">Invia voti</button>
 </div>
 
-<div class="results hidden" id="results">
+<div class="box hidden" id="admin">
   <h2>🏆 Classifica Finale</h2>
+  <button onclick="showResults()">MOSTRA CLASSIFICA</button>
   <div id="ranking"></div>
 </div>
 
-<script>
-// ----------------- Config -----------------
-const SECRET_CODE = "SANREMO26";
-const artists = [
-  "Arisa – Magica favola","Bambole di Pezza – Resta con me","Chiello – Ti penso sempre",
-  "Dargen D'Amico – AI AI","Ditonellapiaga – Che fastidio!","Eddie Brock – Avvoltoi",
-  "Elettra Lamborghini – Voilà","Enrico Nigiotti – Ogni volta che non so volare",
-  "Ermal Meta – Stella stellina","Fedez & Marco Masini – Male necessario",
-  "Francesco Renga – Il meglio di me","Fulminacci – Stupida sfortuna",
-  "J-Ax – Italia","LDA & Aka7even – Poesie clandestine","Leo Gassmann – Naturale",
-  "Levante – Sei tu","Luchè – Labirinto","Malika Ayane – Animali notturni",
-  "Mara Sattei – Le cose che non sai di me","Maria Antonietta & Colombre – La felicità e basta",
-  "Michele Bravi – Prima o poi","Nayt – Prima che","Patty Pravo – Opera",
-  "Raf – Ora e per sempre","Sal Da Vinci – Per sempre sì","Samurai Jay – Ossessione",
-  "Sayf – Tu mi piaci tanto","Serena Brancale – Qui con me",
-  "Tommaso Paradiso – I romantici","Tredici Pietro – Uomo che cade"
-];
+<!-- FIREBASE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-let votesData = JSON.parse(localStorage.getItem("votes")||"{}");
-let nickname = "";
+  const firebaseConfig = {
+    // 🔴 INCOLLA QUI LA CONFIG CHE TI HA DATO FIREBASE
+  };
 
-// ----------------- Elements -----------------
-const loginDiv = document.getElementById("login");
-const voteDiv = document.getElementById("vote");
-const artistsDiv = document.getElementById("artists");
-const rankingDiv = document.getElementById("ranking");
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-// ----------------- Functions -----------------
-function startVote(){
-  nickname = document.getElementById("nickname").value.trim();
-  const code = document.getElementById("code").value.trim();
-  if(!nickname || code!==SECRET_CODE){alert("Nickname o codice errato"); return;}
-  if(votesData[nickname]){alert("Hai già votato!"); return;}
-  loginDiv.classList.add("hidden");
-  voteDiv.classList.remove("hidden");
-  renderArtists();
-}
+  const SECRET_CODE = "SANREMO25";
 
-function renderArtists(){
-  artistsDiv.innerHTML="";
-  artists.forEach((a,i)=>{
-    const div = document.createElement("div");
-    div.className="artist";
-    div.innerHTML=`<label>${a}</label>
-      <input type="range" min="1" max="10" value="1" id="a${i}">
-      <div class="score">Voto: <span id="s${i}">1</span></div>`;
-    artistsDiv.appendChild(div);
-    div.querySelector("input").addEventListener("input", e=>{
-      document.getElementById(`s${i}`).textContent=e.target.value;
+  const artistsList = [
+    "Arisa – Magica favola",
+    "Bambole di Pezza – Resta con me",
+    "Chiello – Ti penso sempre",
+    "Dargen D'Amico – AI AI",
+    "Ditonellapiaga – Che fastidio!",
+    "Eddie Brock – Avvoltoi",
+    "Elettra Lamborghini – Voilà",
+    "Enrico Nigiotti – Ogni volta che non so volare",
+    "Ermal Meta – Stella stellina",
+    "Fedez & Marco Masini – Male necessario",
+    "Francesco Renga – Il meglio di me",
+    "Fulminacci – Stupida sfortuna",
+    "J-Ax – Italia",
+    "LDA & Aka7even – Poesie clandestine",
+    "Leo Gassmann – Naturale",
+    "Levante – Sei tu",
+    "Luchè – Labirinto",
+    "Malika Ayane – Animali notturni",
+    "Mara Sattei – Le cose che non sai di me",
+    "Maria Antonietta & Colombre – La felicità e basta",
+    "Michele Bravi – Prima o poi",
+    "Nayt – Prima che",
+    "Patty Pravo – Opera",
+    "Raf – Ora e per sempre",
+    "Sal Da Vinci – Per sempre sì",
+    "Samurai Jay – Ossessione",
+    "Sayf – Tu mi piaci tanto",
+    "Serena Brancale – Qui con me",
+    "Tommaso Paradiso – I romantici",
+    "Tredici Pietro – Uomo che cade"
+  ];
+
+  window.start = () => {
+    if (code.value !== SECRET_CODE || !nickname.value) {
+      alert("Codice o nickname errato");
+      return;
+    }
+    login.classList.add("hidden");
+    vote.classList.remove("hidden");
+    admin.classList.remove("hidden");
+    artistsList.forEach((a,i)=>{
+      artists.innerHTML += `
+        <div class="artist">
+          <b>${a}</b><br>
+          <input type="range" min="1" max="10" value="5" id="v${i}">
+        </div>`;
     });
-  });
-}
+  };
 
-function submitVotes(){
-  const userVotes = artists.map((_,i)=>+document.getElementById(`a${i}`).value);
-  if(userVotes.includes(0)){alert("Devi votare tutti i cantanti"); return;}
-  votesData[nickname] = userVotes;
-  localStorage.setItem("votes",JSON.stringify(votesData));
-  voteDiv.classList.add("hidden");
-  showResults();
-}
+  window.sendVotes = async () => {
+    const votes = artistsList.map((_,i)=>+document.getElementById("v"+i).value);
+    await addDoc(collection(db, "votes"), { votes });
+    alert("Voto inviato!");
+    vote.classList.add("hidden");
+  };
 
-function showResults(){
-  rankingDiv.innerHTML="";
-  const totals = artists.map((a,i)=>{
-    let sum=0,count=0;
-    Object.values(votesData).forEach(v=>{sum+=v[i];count++;});
-    return {name:a,avg:sum/count};
-  }).sort((a,b)=>b.avg-a.avg);
-  totals.forEach(t=>{
-    const bar = document.createElement("div");
-    bar.className="bar";
-    bar.style.width="0%";
-    rankingDiv.appendChild(bar);
-    setTimeout(()=>{bar.style.width=(t.avg/10*100)+"%"; bar.textContent=`${t.name} – ${t.avg.toFixed(2)}`;},50);
-  });
-  document.getElementById("results").classList.remove("hidden");
-}
+  window.showResults = async () => {
+    ranking.innerHTML = "";
+    const snap = await getDocs(collection(db, "votes"));
+    const totals = artistsList.map((a,i)=>{
+      let sum=0, c=0;
+      snap.forEach(d=>{ sum+=d.data().votes[i]; c++; });
+      return { name:a, avg:sum/c };
+    }).sort((a,b)=>b.avg-a.avg);
 
-function resetVotes(){
-  if(confirm("Vuoi davvero resettare tutti i voti locali?")){
-    localStorage.removeItem("votes");
-    votesData={};
-    alert("Voti locali resettati!");
-    window.location.reload();
-  }
-}
-
-// ----------------- Event Listeners -----------------
-document.getElementById("btnStart").addEventListener("click",startVote);
-document.getElementById("btnSubmit").addEventListener("click",submitVotes);
-document.getElementById("btnReset").addEventListener("click",resetVotes);
+    totals.forEach(t=>{
+      const div=document.createElement("div");
+      div.className="bar";
+      div.style.width=(t.avg*8)+"%";
+      div.textContent=`${t.name} – ${t.avg.toFixed(2)}`;
+      ranking.appendChild(div);
+    });
+  };
 </script>
-
 </body>
 </html>
 
