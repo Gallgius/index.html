@@ -211,7 +211,10 @@ window.submitVotes = async () => {
 
 window.showResults = async () => {
   const ranking = document.getElementById("ranking");
+  const podium = document.getElementById("podium");
+
   ranking.innerHTML = "";
+  podium.innerHTML = "";
 
   const snap = await getDocs(collection(db, "votes"));
 
@@ -224,6 +227,19 @@ window.showResults = async () => {
     return { name: a, avg: sum / count };
   }).sort((a,b)=>b.avg-a.avg);
 
+  // 🥇🥈🥉 PODIO
+  totals.slice(0,3).forEach((t, i) => {
+    const div = document.createElement("div");
+    div.className = `podium-box podium-${i+1}`;
+    div.innerHTML = `
+      <div>${["🥇","🥈","🥉"][i]}</div>
+      <div>${t.name}</div>
+      <div>${t.avg.toFixed(2)}</div>
+    `;
+    podium.appendChild(div);
+  });
+
+  // Classifica completa
   totals.forEach(t => {
     const bar = document.createElement("div");
     bar.className = "bar";
