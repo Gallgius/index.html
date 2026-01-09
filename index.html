@@ -1,104 +1,111 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sanremo – Votazione</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(180deg, #0b0b1e, #1c1c3c);
-      color: #fff;
-      margin: 0;
-      padding: 20px;
-    }
-    h1, h2 {
-      text-align: center;
-    }
-    .login, .vote, .results {
-      max-width: 800px;
-      margin: auto;
-      background: rgba(255,255,255,0.05);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.4);
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-    }
-    button {
-      width: 100%;
-      padding: 14px;
-      background: gold;
-      color: #000;
-      border: none;
-      border-radius: 10px;
-      font-size: 18px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .artist {
-      margin: 15px 0;
-    }
-    .artist label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: bold;
-    }
-    .artist input[type=range] {
-      width: 100%;
-    }
-    .score {
-      text-align: right;
-      font-size: 14px;
-      opacity: 0.8;
-    }
-    .hidden { display: none; }
-    .bar {
-      background: linear-gradient(90deg, gold, orange);
-      height: 26px;
-      border-radius: 8px;
-      margin: 6px 0;
-      padding-left: 10px;
-      line-height: 26px;
-      color: #000;
-      font-weight: bold;
-      animation: grow 1.2s ease-out;
-    }
-    @keyframes grow {
-      from { width: 0; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sanremo 2026 – Votazione</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(180deg, #0b0b1e, #1c1c3c);
+  color: #fff;
+  margin: 0;
+  padding: 20px;
+}
+h1, h2 { text-align: center; }
+
+.box {
+  max-width: 800px;
+  margin: auto;
+  background: rgba(255,255,255,0.05);
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.hidden { display: none; }
+
+input, button {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+}
+
+button {
+  background: gold;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.artist { margin: 15px 0; }
+.artist label { font-weight: bold; }
+.score { text-align: right; }
+
+.bar {
+  background: linear-gradient(90deg, gold, orange);
+  height: 26px;
+  border-radius: 8px;
+  margin: 8px 0;
+  padding-left: 10px;
+  line-height: 26px;
+  color: #000;
+  font-weight: bold;
+  animation: grow 1s ease-out;
+}
+
+@keyframes grow {
+  from { width: 0; }
+}
+</style>
 </head>
+
 <body>
 
-<h1>🎤 Sanremo – Votazione Finale</h1>
+<h1>🎤 Sanremo 2026 – Votazione</h1>
 
-<div class="login" id="login">
-  <h2>Inserisci i dati</h2>
-  <input id="nickname" placeholder="Nickname" />
-  <input id="code" placeholder="Codice" />
-  <button onclick="startVote()">Inizia a votare</button>
+<div class="box" id="login">
+  <h2>Accesso</h2>
+  <input id="nickname" placeholder="Nickname">
+  <input id="code" placeholder="Codice">
+  <button onclick="start()">Entra</button>
 </div>
 
-<div class="vote hidden" id="vote">
+<div class="box hidden" id="vote">
   <h2>Vota tutti i cantanti (1–10)</h2>
   <div id="artists"></div>
   <button onclick="submitVotes()">Invia voti</button>
 </div>
 
-<div class="results hidden" id="results">
+<div class="box hidden" id="presenter">
   <h2>🏆 Classifica Finale</h2>
+  <button onclick="showResults()">MOSTRA CLASSIFICA</button>
   <div id="ranking"></div>
 </div>
 
-<script>
-const SECRET_CODE = "SANREMO26"; // CAMBIA QUI IL CODICE
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* 🔴 INCOLLA QUI IL TUO firebaseConfig */
+const firebaseConfig = {
+  apiKey: ""AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE"",
+  authDomain: "sanremo-2026.firebaseapp.com",
+  projectId: "sanremo-2026",
+  storageBucket: "sanremo-2026.firebasestorage.app",
+  messagingSenderId: "585160817288",
+  appId: "1:585160817288:web:71c4552fc2cfd73c9dfd3d"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const PRESENTER_CODE = "SANREMO26";
+let nickname = "";
+let votes = [];
 
 const artists = [
 "Arisa – Magica favola",
@@ -133,54 +140,67 @@ const artists = [
 "Tredici Pietro – Uomo che cade"
 ];
 
-let votes = JSON.parse(localStorage.getItem("votes") || "{}");
+votes = Array(artists.length).fill(0);
 
-function startVote() {
-  const nick = nickname.value.trim();
+window.start = () => {
+  nickname = document.getElementById("nickname").value.trim();
   const code = document.getElementById("code").value.trim();
-  if (!nick || code !== SECRET_CODE) {
-    alert("Nickname o codice errato");
-    return;
+
+  if (!nickname || !code) return alert("Compila tutto");
+
+  document.getElementById("login").classList.add("hidden");
+
+  if (code === PRESENTER_CODE) {
+    document.getElementById("presenter").classList.remove("hidden");
+  } else {
+    document.getElementById("vote").classList.remove("hidden");
+    renderArtists();
   }
-  if (votes[nick]) {
-    alert("Hai già votato!");
-    return;
-  }
-  login.classList.add("hidden");
-  vote.classList.remove("hidden");
-  renderArtists();
-}
+};
 
 function renderArtists() {
+  const div = document.getElementById("artists");
+  div.innerHTML = "";
+
   artists.forEach((a, i) => {
-    const div = document.createElement("div");
-    div.className = "artist";
-    div.innerHTML = `<label>${a}</label>
-      <input type="range" min="1" max="10" value="5" id="a${i}" />
-      <div class="score">Voto: <span id="s${i}">5</span></div>`;
-    artistsDiv.appendChild(div);
-    div.querySelector("input").oninput = e => {
-      div.querySelector("span").textContent = e.target.value;
+    const el = document.createElement("div");
+    el.className = "artist";
+    el.innerHTML = `
+      <label>${a}</label>
+      <input type="range" min="1" max="10" value="5">
+      <div class="score">Voto: <span>5</span></div>
+    `;
+    const input = el.querySelector("input");
+    const span = el.querySelector("span");
+    input.oninput = () => {
+      span.textContent = input.value;
+      votes[i] = +input.value;
     };
+    votes[i] = 5;
+    div.appendChild(el);
   });
 }
 
-const artistsDiv = document.getElementById("artists");
+window.submitVotes = async () => {
+  await addDoc(collection(db, "votes"), {
+    nickname,
+    votes,
+    time: Date.now()
+  });
+  alert("Voto inviato!");
+};
 
-function submitVotes() {
-  const nick = nickname.value.trim();
-  votes[nick] = artists.map((_, i) => +document.getElementById(`a${i}`).value);
-  localStorage.setItem("votes", JSON.stringify(votes));
-  vote.classList.add("hidden");
-  showResults();
-}
+window.showResults = async () => {
+  const ranking = document.getElementById("ranking");
+  ranking.innerHTML = "";
 
-function showResults() {
-  results.classList.remove("hidden");
+  const snap = await getDocs(collection(db, "votes"));
+
   const totals = artists.map((a, i) => {
     let sum = 0, count = 0;
-    Object.values(votes).forEach(v => {
-      sum += v[i]; count++;
+    snap.forEach(d => {
+      sum += d.data().votes[i];
+      count++;
     });
     return { name: a, avg: sum / count };
   }).sort((a,b)=>b.avg-a.avg);
@@ -192,8 +212,9 @@ function showResults() {
     bar.textContent = `${t.name} – ${t.avg.toFixed(2)}`;
     ranking.appendChild(bar);
   });
-}
+};
 </script>
+
 </body>
 </html>
 
