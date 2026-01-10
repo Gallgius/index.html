@@ -226,9 +226,11 @@ window.showResults = async () => {
     }, i * 80);
   });
 });
-document.getElementById("btnStart").addEventListener("click", window.start);
-document.getElementById("btnSubmit").addEventListener("click", window.submitVotes);
-document.getElementById("btnShow").addEventListener("click", window.showResults);
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("btnStart").addEventListener("click", window.start);
+  document.getElementById("btnSubmit").addEventListener("click", window.submitVotes);
+  document.getElementById("btnShow").addEventListener("click", window.showResults);
+});
 </script>
 
 </body>
