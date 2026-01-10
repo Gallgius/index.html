@@ -177,8 +177,8 @@ function renderArtists() {
 }
 
 window.submitVotes = async () => {
-  await addDoc(collection(db, "votes"), { nickname, votes, time: Date.now() });
-  alert("Voto inviato!");
+  console.log("Voti:", nickname, votes);
+  alert("TEST OK – bottone funziona");
 };
 function animateBarText(bar, name, target) {
   let current = 0;
