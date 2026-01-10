@@ -114,6 +114,7 @@ button {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// Config Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE",
   authDomain: "sanremo-2026.firebaseapp.com",
@@ -136,102 +137,4 @@ const artists = [
 "Elettra Lamborghini – Voilà","Enrico Nigiotti – Ogni volta che non so volare",
 "Ermal Meta – Stella stellina","Fedez & Marco Masini – Male necessario",
 "Francesco Renga – Il meglio di me","Fulminacci – Stupida sfortuna","J-Ax – Italia",
-"LDA & Aka7even – Poesie clandestine","Leo Gassmann – Naturale","Levante – Sei tu",
-"Luchè – Labirinto","Malika Ayane – Animali notturni","Mara Sattei – Le cose che non sai di me",
-"Maria Antonietta & Colombre – La felicità e basta","Michele Bravi – Prima o poi",
-"Nayt – Prima che","Patty Pravo – Opera","Raf – Ora e per sempre",
-"Sal Da Vinci – Per sempre sì","Samurai Jay – Ossessione","Sayf – Tu mi piaci tanto",
-"Serena Brancale – Qui con me","Tommaso Paradiso – I romantici","Tredici Pietro – Uomo che cade"
-];
-
-votes = Array(artists.length).fill(5);
-
-window.start = () => {
-  nickname = document.getElementById("nickname").value.trim();
-  const code = document.getElementById("code").value.trim();
-  if (!nickname || !code) return alert("Compila tutto");
-  document.getElementById("login").classList.add("hidden");
-  if (code === PRESENTER_CODE) {
-    document.getElementById("presenter").classList.remove("hidden");
-  } else {
-    document.getElementById("vote").classList.remove("hidden");
-    renderArtists();
-  }
-};
-
-function renderArtists() {
-  const div = document.getElementById("artists");
-  div.innerHTML = "";
-  artists.forEach((a, i) => {
-    const el = document.createElement("div");
-    el.className = "artist";
-    el.innerHTML = `
-      <label>${a}</label>
-      <input type="range" min="1" max="10" value="5">
-      <div class="score">Voto: <span>5</span></div>`;
-    const input = el.querySelector("input");
-    const span = el.querySelector("span");
-    input.oninput = () => { span.textContent = input.value; votes[i] = +input.value; };
-    div.appendChild(el);
-  });
-}
-
-window.submitVotes = async () => {
-  console.log("Voti:", nickname, votes);
-  alert("TEST OK – bottone funziona");
-};
-function animateBarText(bar, name, target) {
-  let current = 0;
-  const step = target / 40;
-  const interval = setInterval(() => {
-    current += step;
-    if (current >= target) {
-      bar.textContent = `${name} – ${target.toFixed(2)}`;
-      clearInterval(interval);
-    } else {
-      bar.textContent = `${name} – ${current.toFixed(2)}`;
-    }
-  }, 20);
-}
-window.showResults = async () => {
-  const ranking = document.getElementById("ranking");
-  const podium = document.getElementById("podium");
-  ranking.innerHTML = ""; podium.innerHTML = "";
-  const snap = await getDocs(collection(db, "votes"));
-  const totals = artists.map((a, i) => {
-    let sum = 0, count = 0;
-    snap.forEach(d => { sum += d.data().votes[i]; count++; });
-    return { name: a, avg: sum / count };
-  }).sort((a,b)=>b.avg-a.avg);
-
-  totals.slice(0,3).forEach((t, i) => {
-    const div = document.createElement("div");
-    div.className = `podium-box podium-${i+1}`;
-    div.innerHTML = `<div>${["🥇","🥈","🥉"][i]}</div><div>${t.name}</div><div>${t.avg.toFixed(2)}</div>`;
-    podium.appendChild(div);
-  });
-
- totals.forEach((t, i) => {
-  const bar = document.createElement("div");
-  bar.className = "bar";
-  bar.style.width = "0%";
-  bar.textContent = `${t.name} – 0.00`;
-  ranking.appendChild(bar);
-
-  // Forziamo un frame di attesa reale
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      bar.style.width = (t.avg * 8) + "%";
-      animateBarText(bar, t.name, t.avg);
-    }, i * 80);
-  });
-});
-window.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("btnStart").addEventListener("click", window.start);
-  document.getElementById("btnSubmit").addEventListener("click", window.submitVotes);
-  document.getElementById("btnShow").addEventListener("click", window.showResults);
-});
-</script>
-
-</body>
-</html>
+"LDA & Aka7even – Poesie clandestine
