@@ -199,14 +199,31 @@ window.showResults = async () => {
     podium.appendChild(div);
   });
 
-  totals.forEach(t => {
-    const bar = document.createElement("div");
-    bar.className = "bar";
+ totals.forEach((t, i) => {
+  const bar = document.createElement("div");
+  bar.className = "bar";
+  bar.style.width = "0%";
+  bar.textContent = `${t.name} – 0.00`;
+  ranking.appendChild(bar);
+
+  setTimeout(() => {
     bar.style.width = (t.avg * 8) + "%";
-    bar.textContent = `${t.name} – ${t.avg.toFixed(2)}`;
-    ranking.appendChild(bar);
-  });
-};
+    animateBarText(bar, t.name, t.avg);
+  }, i * 60);
+});
+  function animateBarText(bar, name, target) {
+  let current = 0;
+  const step = target / 40;
+  const interval = setInterval(() => {
+    current += step;
+    if (current >= target) {
+      bar.textContent = `${name} – ${target.toFixed(2)}`;
+      clearInterval(interval);
+    } else {
+      bar.textContent = `${name} – ${current.toFixed(2)}`;
+    }
+  }, 20);
+}
 </script>
 
 </body>
