@@ -54,13 +54,11 @@ button {
   line-height: 26px;
   color: #000;
   font-weight: bold;
-  animation: grow 1s ease-out;
+  width: 0%; /* larghezza iniziale per animazione */
+  transition: width 1.2s ease-out;
 }
 
-@keyframes grow {
-  from { width: 0; }
-}
-  #podium {
+#podium {
   display: flex;
   justify-content: center;
   gap: 20px;
@@ -74,6 +72,7 @@ button {
   border-radius: 12px;
   padding: 15px;
   font-weight: bold;
+  text-align: center;
 }
 
 .podium-1 { font-size: 22px; }
@@ -90,19 +89,19 @@ button {
   <h2>Accesso</h2>
   <input id="nickname" placeholder="Nickname">
   <input id="code" placeholder="Codice">
-  <button onclick="start()">Entra</button>
+  <button id="btnStart">Entra</button>
 </div>
 
 <div class="box hidden" id="vote">
   <h2>Vota tutti i cantanti (1–10)</h2>
   <div id="artists"></div>
-  <button onclick="submitVotes()">Invia voti</button>
+  <button id="btnSubmit">Invia voti</button>
 </div>
 
 <div class="box hidden" id="presenter">
   <h2>🏆 Classifica Finale</h2>
   <div id="podium"></div>
-  <button onclick="showResults()">MOSTRA CLASSIFICA</button>
+  <button id="btnShow">MOSTRA CLASSIFICA</button>
   <div id="ranking"></div>
 </div>
 
@@ -110,7 +109,7 @@ button {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* 🔴 INCOLLA QUI IL TUO firebaseConfig */
+// 🔴 Inserisci qui il tuo firebaseConfig
 const firebaseConfig = {
   apiKey: "AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE",
   authDomain: "sanremo-2026.firebaseapp.com",
@@ -128,56 +127,22 @@ let nickname = "";
 let votes = [];
 
 const artists = [
-"Arisa – Magica favola",
-"Bambole di Pezza – Resta con me",
-"Chiello – Ti penso sempre",
-"Dargen D'Amico – AI AI",
-"Ditonellapiaga – Che fastidio!",
-"Eddie Brock – Avvoltoi",
-"Elettra Lamborghini – Voilà",
-"Enrico Nigiotti – Ogni volta che non so volare",
-"Ermal Meta – Stella stellina",
-"Fedez & Marco Masini – Male necessario",
-"Francesco Renga – Il meglio di me",
-"Fulminacci – Stupida sfortuna",
-"J-Ax – Italia",
-"LDA & Aka7even – Poesie clandestine",
-"Leo Gassmann – Naturale",
-"Levante – Sei tu",
-"Luchè – Labirinto",
-"Malika Ayane – Animali notturni",
-"Mara Sattei – Le cose che non sai di me",
-"Maria Antonietta & Colombre – La felicità e basta",
-"Michele Bravi – Prima o poi",
-"Nayt – Prima che",
-"Patty Pravo – Opera",
-"Raf – Ora e per sempre",
-"Sal Da Vinci – Per sempre sì",
-"Samurai Jay – Ossessione",
-"Sayf – Tu mi piaci tanto",
-"Serena Brancale – Qui con me",
-"Tommaso Paradiso – I romantici",
-"Tredici Pietro – Uomo che cade"
+"Arisa – Magica favola","Bambole di Pezza – Resta con me","Chiello – Ti penso sempre",
+"Dargen D'Amico – AI AI","Ditonellapiaga – Che fastidio!","Eddie Brock – Avvoltoi",
+"Elettra Lamborghini – Voilà","Enrico Nigiotti – Ogni volta che non so volare",
+"Ermal Meta – Stella stellina","Fedez & Marco Masini – Male necessario",
+"Francesco Renga – Il meglio di me","Fulminacci – Stupida sfortuna","J-Ax – Italia",
+"LDA & Aka7even – Poesie clandestine","Leo Gassmann – Naturale","Levante – Sei tu",
+"Luchè – Labirinto","Malika Ayane – Animali notturni","Mara Sattei – Le cose che non sai di me",
+"Maria Antonietta & Colombre – La felicità e basta","Michele Bravi – Prima o poi",
+"Nayt – Prima che","Patty Pravo – Opera","Raf – Ora e per sempre",
+"Sal Da Vinci – Per sempre sì","Samurai Jay – Ossessione","Sayf – Tu mi piaci tanto",
+"Serena Brancale – Qui con me","Tommaso Paradiso – I romantici","Tredici Pietro – Uomo che cade"
 ];
 
-votes = Array(artists.length).fill(0);
+votes = Array(artists.length).fill(5);
 
-window.start = () => {
-  nickname = document.getElementById("nickname").value.trim();
-  const code = document.getElementById("code").value.trim();
-
-  if (!nickname || !code) return alert("Compila tutto");
-
-  document.getElementById("login").classList.add("hidden");
-
-  if (code === PRESENTER_CODE) {
-    document.getElementById("presenter").classList.remove("hidden");
-  } else {
-    document.getElementById("vote").classList.remove("hidden");
-    renderArtists();
-  }
-};
-
+// --- FUNZIONI ---
 function renderArtists() {
   const div = document.getElementById("artists");
   div.innerHTML = "";
@@ -196,18 +161,44 @@ function renderArtists() {
       span.textContent = input.value;
       votes[i] = +input.value;
     };
-    votes[i] = 5;
     div.appendChild(el);
   });
 }
 
+function animateBar(bar, target) {
+  // Forza frame di attesa per trigger transition
+  setTimeout(() => { bar.style.width = target + "%"; }, 50);
+}
+
+window.start = () => {
+  nickname = document.getElementById("nickname").value.trim();
+  const code = document.getElementById("code").value.trim();
+
+  if (!nickname || !code) return alert("Compila tutto");
+
+  document.getElementById("login").classList.add("hidden");
+
+  if (code === PRESENTER_CODE) {
+    document.getElementById("presenter").classList.remove("hidden");
+  } else {
+    document.getElementById("vote").classList.remove("hidden");
+    renderArtists();
+  }
+};
+
 window.submitVotes = async () => {
-  await addDoc(collection(db, "votes"), {
-    nickname,
-    votes,
-    time: Date.now()
-  });
-  alert("Voto inviato!");
+  try {
+    await addDoc(collection(db, "votes"), {
+      nickname,
+      votes,
+      time: Date.now()
+    });
+    alert("Voti inviati!");
+    document.getElementById("vote").classList.add("hidden");
+  } catch(e) {
+    console.error(e);
+    alert("Errore invio voti");
+  }
 };
 
 window.showResults = async () => {
@@ -225,10 +216,10 @@ window.showResults = async () => {
       sum += d.data().votes[i];
       count++;
     });
-    return { name: a, avg: sum / count };
+    return { name: a, avg: count ? sum / count : 0 };
   }).sort((a,b)=>b.avg-a.avg);
 
-  // 🥇🥈🥉 PODIO
+  // 🥇🥈🥉 Podio
   totals.slice(0,3).forEach((t, i) => {
     const div = document.createElement("div");
     div.className = `podium-box podium-${i+1}`;
@@ -240,19 +231,22 @@ window.showResults = async () => {
     podium.appendChild(div);
   });
 
-  // Classifica completa
+  // Classifica completa con barre animate
   totals.forEach(t => {
     const bar = document.createElement("div");
     bar.className = "bar";
-    bar.style.width = (t.avg * 8) + "%";
     bar.textContent = `${t.name} – ${t.avg.toFixed(2)}`;
     ranking.appendChild(bar);
+    animateBar(bar, t.avg * 8);
   });
 };
-</script>
 
-</body>
-</html>
+// --- Event listener bottoni ---
+document.getElementById("btnStart").addEventListener("click", window.start);
+document.getElementById("btnSubmit").addEventListener("click", window.submitVotes);
+document.getElementById("btnShow").addEventListener("click", window.showResults);
+
+</script>
 
 </body>
 </html>
