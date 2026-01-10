@@ -180,7 +180,19 @@ window.submitVotes = async () => {
   await addDoc(collection(db, "votes"), { nickname, votes, time: Date.now() });
   alert("Voto inviato!");
 };
-
+function animateBarText(bar, name, target) {
+  let current = 0;
+  const step = target / 40;
+  const interval = setInterval(() => {
+    current += step;
+    if (current >= target) {
+      bar.textContent = `${name} – ${target.toFixed(2)}`;
+      clearInterval(interval);
+    } else {
+      bar.textContent = `${name} – ${current.toFixed(2)}`;
+    }
+  }, 20);
+}
 window.showResults = async () => {
   const ranking = document.getElementById("ranking");
   const podium = document.getElementById("podium");
@@ -206,24 +218,15 @@ window.showResults = async () => {
   bar.textContent = `${t.name} – 0.00`;
   ranking.appendChild(bar);
 
-  setTimeout(() => {
-    bar.style.width = (t.avg * 8) + "%";
-    animateBarText(bar, t.name, t.avg);
-  }, i * 60);
+  // Forziamo un frame di attesa reale
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      bar.style.width = (t.avg * 8) + "%";
+      animateBarText(bar, t.name, t.avg);
+    }, i * 80);
+  });
 });
-  function animateBarText(bar, name, target) {
-  let current = 0;
-  const step = target / 40;
-  const interval = setInterval(() => {
-    current += step;
-    if (current >= target) {
-      bar.textContent = `${name} – ${target.toFixed(2)}`;
-      clearInterval(interval);
-    } else {
-      bar.textContent = `${name} – ${current.toFixed(2)}`;
-    }
-  }, 20);
-}
+  
 </script>
 
 </body>
