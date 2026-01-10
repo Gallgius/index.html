@@ -54,7 +54,7 @@ button {
   line-height: 26px;
   color: #000;
   font-weight: bold;
-  width: 0%; /* larghezza iniziale per animazione */
+  width: 0%;
   transition: width 1.2s ease-out;
 }
 
@@ -122,7 +122,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// 🔑 Codici
 const PRESENTER_CODE = "SANREMO26";
+const VOTER_CODE = "VOTA26"; // codice unico per tutti i votanti
+
 let nickname = "";
 let votes = [];
 
@@ -166,7 +169,6 @@ function renderArtists() {
 }
 
 function animateBar(bar, target) {
-  // Forza frame di attesa per trigger transition
   setTimeout(() => { bar.style.width = target + "%"; }, 50);
 }
 
@@ -180,9 +182,12 @@ window.start = () => {
 
   if (code === PRESENTER_CODE) {
     document.getElementById("presenter").classList.remove("hidden");
-  } else {
+  } else if (code === VOTER_CODE) {
     document.getElementById("vote").classList.remove("hidden");
     renderArtists();
+  } else {
+    alert("Codice errato");
+    document.getElementById("login").classList.remove("hidden");
   }
 };
 
