@@ -94,19 +94,19 @@ button {
   <h2>Accesso</h2>
   <input id="nickname" placeholder="Nickname">
   <input id="code" placeholder="Codice">
-  <button onclick="start()">Entra</button>
+  <button id="btnStart">Entra</button>
 </div>
 
 <div class="box hidden" id="vote">
   <h2>Vota tutti i cantanti (1–10)</h2>
   <div id="artists"></div>
-  <button onclick="submitVotes()">Invia voti</button>
+  <button id="btnSubmit">Invia voti</button>
 </div>
 
 <div class="box hidden" id="presenter">
   <h2>🏆 Classifica Finale</h2>
   <div id="podium"></div>
-  <button onclick="showResults()">MOSTRA CLASSIFICA</button>
+  <button id="btnShow">MOSTRA CLASSIFICA</button>
   <div id="ranking"></div>
 </div>
 
@@ -226,7 +226,9 @@ window.showResults = async () => {
     }, i * 80);
   });
 });
-  
+ document.getElementById("btnStart").addEventListener("click", start);
+document.getElementById("btnSubmit").addEventListener("click", submitVotes);
+document.getElementById("btnShow").addEventListener("click", showResults); 
 </script>
 
 </body>
