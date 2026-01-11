@@ -108,7 +108,6 @@ btnSubmit.onclick = async () => {
   const nickname = nicknameEl.value.trim();
   if(!nickname) return;
 
-  // Controllo voti duplicati
   const q = query(collection(db,"votes"), where("nickname","==",nickname));
   const snap = await getDocs(q);
   if(!snap.empty) return alert("Hai già votato!");
@@ -117,7 +116,7 @@ btnSubmit.onclick = async () => {
   alert("Voto inviato!");
 };
 
-/* CLASSIFICA */
+/* CLASSIFICA CRESCENTE */
 btnShow.onclick = async () => {
   ranking.innerHTML = "";
   podium.innerHTML = "";
@@ -133,13 +132,16 @@ btnShow.onclick = async () => {
     return {name:a, avg:count?sum/count:0};
   });
 
-  totals.sort((a,b)=>b.avg - a.avg); // decrescente
-  top3 = totals.slice(0,3); // salva podio
-  const others = totals.slice(3); // esclusi top3
+  // Ordine crescente (dal più basso al più alto)
+  totals.sort((a,b)=>a.avg - b.avg);
+
+  // Top3 sono i più alti
+  top3 = totals.slice(-3).reverse(); 
+  const others = totals.slice(0, -3); 
 
   let startPos = 30;
   others.forEach((t,i)=>{
-    const currentPos = startPos - i; // cattura posizione corretta
+    const currentPos = startPos - i;
     const bar = document.createElement("div");
     bar.className = "bar";
     bar.style.width = "0%";
@@ -166,4 +168,5 @@ btnReveal.onclick = () => {
 </script>
 </body>
 </html>
+
 
