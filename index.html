@@ -2,23 +2,22 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Sanremo 2026 – Votazione</title>
+<title>Sanremo 2026</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
-body {font-family:Arial;background:#0b0b1e;color:white;padding:20px}
+body{font-family:Arial;background:#0b0b1e;color:white;padding:20px}
 .box{max-width:800px;margin:auto;background:rgba(255,255,255,.05);padding:20px;border-radius:12px}
 .hidden{display:none}
 input,button{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:none;font-size:16px}
 button{background:gold;color:black;font-weight:bold;cursor:pointer}
-.artist{margin:12px 0}
+.artist{margin:10px 0}
 .bar{background:linear-gradient(90deg,gold,orange);height:26px;border-radius:8px;margin:6px 0;line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width 1s}
 #podium{display:flex;gap:20px;justify-content:center;margin:20px 0}
 .podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;text-align:center;font-weight:bold}
 </style>
 </head>
-
 <body>
+
 <h1>🎤 Sanremo 2026</h1>
 
 <div class="box" id="login">
@@ -57,85 +56,100 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const PRESENTER_CODE="SANREMO26";
-let nickname="", votes=[], top3=[];
+const artists=["Arisa","Bambole di Pezza","Chiello","Dargen","Ditonellapiaga","Eddie Brock",
+"Elettra","Nigiotti","Ermal","Fedez & Masini","Renga","Fulminacci","J-Ax","LDA","Leo","Levante",
+"Luchè","Malika","Mara","Maria A.","Michele","Nayt","Patty","Raf","Sal","Samurai","Sayf",
+"Serena","Paradiso","Tredici"];
 
-const artists=[
-"Arisa","Bambole di Pezza","Chiello","Dargen D'Amico","Ditonellapiaga","Eddie Brock",
-"Elettra Lamborghini","Enrico Nigiotti","Ermal Meta","Fedez & Masini","Francesco Renga",
-"Fulminacci","J-Ax","LDA & Aka7even","Leo Gassmann","Levante","Luchè","Malika Ayane",
-"Mara Sattei","Maria Antonietta","Michele Bravi","Nayt","Patty Pravo","Raf","Sal Da Vinci",
-"Samurai Jay","Sayf","Serena Brancale","Tommaso Paradiso","Tredici Pietro"
-];
+let votes=Array(artists.length).fill(5);
+let top3=[];
 
-votes=Array(artists.length).fill(5);
+/* ELEMENTI */
+const nicknameEl=document.getElementById("nickname");
+const codeEl=document.getElementById("code");
+const login=document.getElementById("login");
+const vote=document.getElementById("vote");
+const presenter=document.getElementById("presenter");
+const artistsDiv=document.getElementById("artists");
+const ranking=document.getElementById("ranking");
+const podium=document.getElementById("podium");
 
+const btnStart=document.getElementById("btnStart");
+const btnSubmit=document.getElementById("btnSubmit");
+const btnShow=document.getElementById("btnShow");
+const btnReveal=document.getElementById("btnReveal");
+
+/* LOGIN */
 btnStart.onclick=()=>{
- nickname=nicknameEl.value.trim();
- let code=codeEl.value.trim();
- if(!nickname||!code) return alert("Compila tutto");
- login.classList.add("hidden");
- if(code===PRESENTER_CODE) presenter.classList.remove("hidden");
- else { vote.classList.remove("hidden"); renderArtists(); }
+  const nickname=nicknameEl.value.trim();
+  const code=codeEl.value.trim();
+  if(!nickname||!code) return alert("Compila tutto");
+  login.classList.add("hidden");
+  if(code===PRESENTER_CODE) presenter.classList.remove("hidden");
+  else { vote.classList.remove("hidden"); renderArtists(); }
 };
 
+/* VOTAZIONE */
 function renderArtists(){
- artists.forEach((a,i)=>{
-  let d=document.createElement("div");
-  d.className="artist";
-  d.innerHTML=`${a}<input type="range" min="1" max="10" value="5"><span> 5</span>`;
-  let r=d.querySelector("input"), s=d.querySelector("span");
-  r.oninput=()=>{s.textContent=" "+r.value; votes[i]=+r.value;}
-  artistsDiv.appendChild(d);
- });
+  artistsDiv.innerHTML="";
+  artists.forEach((a,i)=>{
+    const d=document.createElement("div");
+    d.className="artist";
+    d.innerHTML=`${a}<input type="range" min="1" max="10" value="5"><span> 5</span>`;
+    const r=d.querySelector("input");
+    const s=d.querySelector("span");
+    r.oninput=()=>{s.textContent=" "+r.value; votes[i]=+r.value;}
+    artistsDiv.appendChild(d);
+  });
 }
 
 btnSubmit.onclick=async()=>{
- await addDoc(collection(db,"votes"),{nickname,votes});
- alert("Voto inviato!");
+  await addDoc(collection(db,"votes"),{votes});
+  alert("Voto inviato!");
 };
 
+/* CLASSIFICA */
 btnShow.onclick=async()=>{
- ranking.innerHTML=""; podium.innerHTML=""; podium.classList.add("hidden");
- const snap=await getDocs(collection(db,"votes"));
- let totals=artists.map((a,i)=>{
-  let sum=0,count=0;
-  snap.forEach(d=>{
-    let v=d.data().votes?.[i];
-    if(v!==undefined){sum+=v;count++;}
+  ranking.innerHTML="";
+  podium.innerHTML="";
+  podium.classList.add("hidden");
+
+  const snap=await getDocs(collection(db,"votes"));
+  let totals=artists.map((a,i)=>{
+    let sum=0,count=0;
+    snap.forEach(d=>{
+      const v=d.data().votes?.[i];
+      if(v!==undefined){sum+=v;count++;}
+    });
+    return {name:a,avg:count?sum/count:0};
+  }).sort((a,b)=>a.avg-b.avg);
+
+  top3=totals.slice(-3).reverse();
+
+  totals.forEach((t,i)=>{
+    const bar=document.createElement("div");
+    bar.className="bar";
+    bar.style.width="0%";
+    bar.textContent=`${30-i}. ${t.name} – 0.00`;
+    ranking.appendChild(bar);
+    setTimeout(()=>{
+      bar.style.width=(t.avg*8)+"%";
+      bar.textContent=`${30-i}. ${t.name} – ${t.avg.toFixed(2)}`;
+    },i*60);
   });
-  return {name:a,avg:count?sum/count:0};
- }).sort((a,b)=>a.avg-b.avg);
-
- top3=totals.slice(-3).reverse();
-
- totals.forEach((t,i)=>{
-  let bar=document.createElement("div");
-  bar.className="bar";
-  bar.style.width="0%";
-  bar.textContent=`${30-i}. ${t.name} – 0.00`;
-  ranking.appendChild(bar);
-  setTimeout(()=>{
-    bar.style.width=(t.avg*8)+"%";
-    bar.textContent=`${30-i}. ${t.name} – ${t.avg.toFixed(2)}`;
-  },i*50);
- });
 };
 
+/* PODIO */
 btnReveal.onclick=()=>{
- podium.innerHTML="";
- top3.forEach((t,i)=>{
-  let d=document.createElement("div");
-  d.className="podium-box";
-  d.innerHTML=`${["🥇","🥈","🥉"][i]}<br>${t.name}<br>${t.avg.toFixed(2)}`;
-  podium.appendChild(d);
- });
- podium.classList.remove("hidden");
+  podium.innerHTML="";
+  top3.forEach((t,i)=>{
+    const d=document.createElement("div");
+    d.className="podium-box";
+    d.innerHTML=`${["🥇","🥈","🥉"][i]}<br>${t.name}<br>${t.avg.toFixed(2)}`;
+    podium.appendChild(d);
+  });
+  podium.classList.remove("hidden");
 };
-
-const nicknameEl=nickname, codeEl=code, login=document.getElementById("login"),
-vote=document.getElementById("vote"), presenter=document.getElementById("presenter"),
-artistsDiv=document.getElementById("artists"), ranking=document.getElementById("ranking"),
-podium=document.getElementById("podium");
 </script>
 </body>
 </html>
