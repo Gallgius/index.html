@@ -61,8 +61,8 @@ const artists=["Arisa","Bambole di Pezza","Chiello","Dargen","Ditonellapiaga","E
 "Luchè","Malika","Mara","Maria A.","Michele","Nayt","Patty","Raf","Sal","Samurai","Sayf",
 "Serena","Paradiso","Tredici"];
 
-let votes=Array(artists.length).fill(5);
-let top3=[];
+let votes = Array(artists.length).fill(1);
+let top3 = [];
 
 /* ELEMENTI */
 const nicknameEl=document.getElementById("nickname");
@@ -80,22 +80,23 @@ const btnShow=document.getElementById("btnShow");
 const btnReveal=document.getElementById("btnReveal");
 
 /* LOGIN */
-btnStart.onclick=()=>{
-  const nickname=nicknameEl.value.trim();
-  const code=codeEl.value.trim();
-  if(!nickname||!code) return alert("Compila tutto");
+btnStart.onclick = () => {
+  const nickname = nicknameEl.value.trim();
+  const code = codeEl.value.trim();
+  if(!nickname || !code) return alert("Compila tutto");
   login.classList.add("hidden");
-  if(code===PRESENTER_CODE) presenter.classList.remove("hidden");
+  if(code === PRESENTER_CODE) presenter.classList.remove("hidden");
   else { vote.classList.remove("hidden"); renderArtists(); }
 };
 
 /* VOTAZIONE */
-function renderArtists(){
+function renderArtists() {
   artistsDiv.innerHTML="";
+  votes = Array(artists.length).fill(1); // inizializza array voti a 1
   artists.forEach((a,i)=>{
     const d=document.createElement("div");
     d.className="artist";
-    d.innerHTML=`${a}<input type="range" min="1" max="10" value="5"><span> 5</span>`;
+    d.innerHTML=`${a}<input type="range" min="1" max="10" value="1"><span> 1</span>`;
     const r=d.querySelector("input");
     const s=d.querySelector("span");
     r.oninput=()=>{s.textContent=" "+r.value; votes[i]=+r.value;}
@@ -103,64 +104,61 @@ function renderArtists(){
   });
 }
 
-btnSubmit.onclick=async()=>{
-  const nickname=nicknameEl.value.trim();
+btnSubmit.onclick = async () => {
+  const nickname = nicknameEl.value.trim();
   if(!nickname) return;
 
-  // Controlla se il nickname ha già votato
+  // Controllo voti duplicati
   const q = query(collection(db,"votes"), where("nickname","==",nickname));
   const snap = await getDocs(q);
   if(!snap.empty) return alert("Hai già votato!");
 
-  await addDoc(collection(db,"votes"),{nickname,votes});
+  await addDoc(collection(db,"votes"), {nickname, votes});
   alert("Voto inviato!");
 };
 
 /* CLASSIFICA */
-btnShow.onclick=async()=>{
-  ranking.innerHTML="";
-  podium.innerHTML="";
+btnShow.onclick = async () => {
+  ranking.innerHTML = "";
+  podium.innerHTML = "";
   podium.classList.add("hidden");
 
-  const snap=await getDocs(collection(db,"votes"));
-  let totals=artists.map((a,i)=>{
+  const snap = await getDocs(collection(db,"votes"));
+  let totals = artists.map((a,i)=>{
     let sum=0,count=0;
     snap.forEach(d=>{
-      const v=d.data().votes?.[i];
-      if(v!==undefined){sum+=v;count++;}
+      const v = d.data().votes?.[i];
+      if(v !== undefined){sum+=v; count++;}
     });
-    return {name:a,avg:count?sum/count:0};
+    return {name:a, avg:count?sum/count:0};
   });
 
-  // Ordina decrescente
-  totals.sort((a,b)=>b.avg - a.avg);
+  totals.sort((a,b)=>b.avg - a.avg); // decrescente
+  top3 = totals.slice(0,3); // salva podio
+  const others = totals.slice(3); // esclusi top3
 
-  // Memorizza i primi 3 per il podio
-  top3 = totals.slice(0,3);
-
-  // Mostra solo gli altri
-  const others = totals.slice(3);
-
+  let pos = 30; // partiamo da posizione 30
   others.forEach((t,i)=>{
-    const bar=document.createElement("div");
-    bar.className="bar";
-    bar.style.width="0%";
-    bar.textContent=`${i+4}. ${t.name} – 0.00`;
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    bar.style.width = "0%";
+    bar.textContent = `${pos}. ${t.name} – 0.00`;
     ranking.appendChild(bar);
     setTimeout(()=>{
-      bar.style.width=(t.avg*8)+"%";
-      bar.textContent=`${i+4}. ${t.name} – ${t.avg.toFixed(2)}`;
-    },i*60);
+      bar.style.width = (t.avg*8)+"%";
+      bar.textContent = `${pos}. ${t.name} – ${t.avg.toFixed(2)}`;
+    }, i*60);
+    pos--;
   });
 };
 
 /* PODIO */
-btnReveal.onclick=()=>{
-  podium.innerHTML="";
+btnReveal.onclick = () => {
+  podium.innerHTML = "";
   top3.forEach((t,i)=>{
     const d=document.createElement("div");
     d.className="podium-box";
-    d.innerHTML=`${["🥇","🥈","🥉"][i]}<br>${t.name}<br>${t.avg.toFixed(2)}`;
+    d.innerHTML = `${["🥇","🥈","🥉"][i]}<br>${t.name}<br>${t.avg.toFixed(2)}`;
     podium.appendChild(d);
   });
   podium.classList.remove("hidden");
