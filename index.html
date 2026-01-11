@@ -92,7 +92,7 @@ btnStart.onclick = () => {
 /* VOTAZIONE */
 function renderArtists() {
   artistsDiv.innerHTML="";
-  votes = Array(artists.length).fill(1); // inizializza array voti a 1
+  votes = Array(artists.length).fill(1);
   artists.forEach((a,i)=>{
     const d=document.createElement("div");
     d.className="artist";
@@ -137,18 +137,18 @@ btnShow.onclick = async () => {
   top3 = totals.slice(0,3); // salva podio
   const others = totals.slice(3); // esclusi top3
 
-  let pos = 30; // partiamo da posizione 30
+  let startPos = 30;
   others.forEach((t,i)=>{
+    const currentPos = startPos - i; // cattura posizione corretta
     const bar = document.createElement("div");
     bar.className = "bar";
     bar.style.width = "0%";
-    bar.textContent = `${pos}. ${t.name} – 0.00`;
+    bar.textContent = `${currentPos}. ${t.name} – 0.00`;
     ranking.appendChild(bar);
     setTimeout(()=>{
       bar.style.width = (t.avg*8)+"%";
-      bar.textContent = `${pos}. ${t.name} – ${t.avg.toFixed(2)}`;
+      bar.textContent = `${currentPos}. ${t.name} – ${t.avg.toFixed(2)}`;
     }, i*60);
-    pos--;
   });
 };
 
@@ -166,4 +166,3 @@ btnReveal.onclick = () => {
 </script>
 </body>
 </html>
-
