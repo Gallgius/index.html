@@ -14,6 +14,7 @@ button{background:gold;color:black;font-weight:bold;cursor:pointer}
 .bar{background:linear-gradient(90deg,gold,orange);height:26px;border-radius:8px;margin:6px 0;line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width 1s}
 #podium{display:flex;gap:20px;justify-content:center;margin:20px 0}
 .podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;text-align:center;font-weight:bold}
+#countdown{font-size:40px;text-align:center;font-weight:bold;margin:20px 0}
 </style>
 </head>
 <body>
@@ -35,6 +36,7 @@ button{background:gold;color:black;font-weight:bold;cursor:pointer}
 <div class="box hidden" id="presenter">
   <button id="btnShow">MOSTRA CLASSIFICA</button>
   <button id="btnReveal">RIVELA PODIO</button>
+  <div id="countdown" class="hidden"></div>
   <div id="podium" class="hidden"></div>
   <div id="ranking"></div>
 </div>
@@ -73,6 +75,7 @@ const presenter=document.getElementById("presenter");
 const artistsDiv=document.getElementById("artists");
 const ranking=document.getElementById("ranking");
 const podium=document.getElementById("podium");
+const countdownEl=document.getElementById("countdown");
 
 const btnStart=document.getElementById("btnStart");
 const btnSubmit=document.getElementById("btnSubmit");
@@ -106,67 +109,76 @@ function renderArtists() {
 
 btnSubmit.onclick = async () => {
   const nickname = nicknameEl.value.trim();
-  if(!nickname) return;
-
   const q = query(collection(db,"votes"), where("nickname","==",nickname));
   const snap = await getDocs(q);
   if(!snap.empty) return alert("Hai già votato!");
-
   await addDoc(collection(db,"votes"), {nickname, votes});
   alert("Voto inviato!");
 };
 
 /* CLASSIFICA CRESCENTE */
 btnShow.onclick = async () => {
-  ranking.innerHTML = "";
-  podium.innerHTML = "";
+  ranking.innerHTML="";
   podium.classList.add("hidden");
-
   const snap = await getDocs(collection(db,"votes"));
   let totals = artists.map((a,i)=>{
     let sum=0,count=0;
     snap.forEach(d=>{
-      const v = d.data().votes?.[i];
-      if(v !== undefined){sum+=v; count++;}
+      const v=d.data().votes?.[i];
+      if(v!==undefined){sum+=v;count++;}
     });
     return {name:a, avg:count?sum/count:0};
   });
 
-  // Ordine crescente (dal più basso al più alto)
-  totals.sort((a,b)=>a.avg - b.avg);
+  totals.sort((a,b)=>a.avg-b.avg);
+  top3 = totals.slice(-3).reverse();
+  const others = totals.slice(0,-3);
 
-  // Top3 sono i più alti
-  top3 = totals.slice(-3).reverse(); 
-  const others = totals.slice(0, -3); 
-
-  let startPos = 30;
   others.forEach((t,i)=>{
-    const currentPos = startPos - i;
-    const bar = document.createElement("div");
-    bar.className = "bar";
-    bar.style.width = "0%";
-    bar.textContent = `${currentPos}. ${t.name} – 0.00`;
+    const pos = 30 - i;
+    const bar=document.createElement("div");
+    bar.className="bar";
+    bar.style.width="0%";
+    bar.textContent=`${pos}. ${t.name} – 0.00`;
     ranking.appendChild(bar);
     setTimeout(()=>{
-      bar.style.width = (t.avg*8)+"%";
-      bar.textContent = `${currentPos}. ${t.name} – ${t.avg.toFixed(2)}`;
+      bar.style.width=(t.avg*8)+"%";
+      bar.textContent=`${pos}. ${t.name} – ${t.avg.toFixed(2)}`;
     }, i*60);
   });
 };
 
-/* PODIO */
+/* PODIO CON COUNTDOWN */
 btnReveal.onclick = () => {
-  podium.innerHTML = "";
+  podium.classList.add("hidden");
+  countdownEl.classList.remove("hidden");
+  let n=10;
+  countdownEl.textContent=n;
+
+  const timer=setInterval(()=>{
+    n--;
+    if(n>0) countdownEl.textContent=n;
+    else{
+      clearInterval(timer);
+      countdownEl.classList.add("hidden");
+      showPodium();
+    }
+  },1000);
+};
+
+function showPodium(){
+  podium.innerHTML="";
   top3.forEach((t,i)=>{
     const d=document.createElement("div");
     d.className="podium-box";
-    d.innerHTML = `${["🥇","🥈","🥉"][i]}<br>${t.name}<br>${t.avg.toFixed(2)}`;
+    d.innerHTML=`${["🥇","🥈","🥉"][i]}<br>${t.name}<br>${t.avg.toFixed(2)}`;
     podium.appendChild(d);
   });
   podium.classList.remove("hidden");
-};
+}
 </script>
 </body>
 </html>
+
 
 
