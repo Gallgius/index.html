@@ -136,16 +136,20 @@ btnShow.onclick = async () => {
     bar.style.width="0%";
     bar.textContent=`${pos}. ${t.name} – 0.00`;
     ranking.appendChild(bar);
+
+    // forza repaint per animazione
+    bar.getBoundingClientRect();
+
     setTimeout(()=>{
       bar.style.width=(t.avg*8)+"%";
       bar.textContent=`${pos}. ${t.name} – ${t.avg.toFixed(2)}`;
-    }, i*60);
+    }, 50);
   });
 };
 
 /* PODIO CON COUNTDOWN */
 btnReveal.onclick = async () => {
-  if(top3.length===0) await calcolaClassifica();
+  await calcolaClassifica(); // sempre indipendente
   podium.classList.add("hidden");
   countdownEl.classList.remove("hidden");
   let n=10;
@@ -175,3 +179,4 @@ function showPodium(){
 </script>
 </body>
 </html>
+
