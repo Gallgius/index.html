@@ -116,10 +116,8 @@ btnSubmit.onclick = async () => {
   alert("Voto inviato!");
 };
 
-/* CLASSIFICA CRESCENTE */
-btnShow.onclick = async () => {
-  ranking.innerHTML="";
-  podium.classList.add("hidden");
+/* CALCOLO CLASSIFICA */
+async function calcolaClassifica(){
   const snap = await getDocs(collection(db,"votes"));
   let totals = artists.map((a,i)=>{
     let sum=0,count=0;
@@ -129,11 +127,15 @@ btnShow.onclick = async () => {
     });
     return {name:a, avg:count?sum/count:0};
   });
-
-  totals.sort((a,b)=>a.avg-b.avg);
+  totals.sort((a,b)=>a.avg-b.avg); // crescente
   top3 = totals.slice(-3).reverse();
-  const others = totals.slice(0,-3);
+  return totals.slice(0,-3); // altri
+}
 
+/* MOSTRA CLASSIFICA */
+btnShow.onclick = async () => {
+  ranking.innerHTML="";
+  const others = await calcolaClassifica();
   others.forEach((t,i)=>{
     const pos = 30 - i;
     const bar=document.createElement("div");
@@ -149,7 +151,8 @@ btnShow.onclick = async () => {
 };
 
 /* PODIO CON COUNTDOWN */
-btnReveal.onclick = () => {
+btnReveal.onclick = async () => {
+  if(top3.length===0) await calcolaClassifica();
   podium.classList.add("hidden");
   countdownEl.classList.remove("hidden");
   let n=10;
