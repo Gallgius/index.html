@@ -15,9 +15,25 @@ button{background:gold;color:black;font-weight:bold;cursor:pointer}
 #podium{display:flex;gap:20px;justify-content:center;margin:20px 0}
 .podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;text-align:center;font-weight:bold}
 #countdown{font-size:40px;text-align:center;font-weight:bold;margin:20px 0}
+
+/* effetti */
+@keyframes glow {
+  0% { box-shadow: 0 0 10px gold; transform: scale(0.9); }
+  50% { box-shadow: 0 0 40px orange; transform: scale(1.05); }
+  100% { box-shadow: 0 0 15px gold; transform: scale(1); }
+}
+.podium-box { animation: glow 1.2s ease-in-out; }
+
+.flash { animation: flashBg 0.6s; }
+@keyframes flashBg {
+  0% { background:#fff; }
+  100% { background:#0b0b1e; }
+}
 </style>
 </head>
 <body>
+
+<audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7b6b6f5a1c.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
 
 <h1>🎤 Sanremo 2026</h1>
 
@@ -45,13 +61,7 @@ button{background:gold;color:black;font-weight:bold;cursor:pointer}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE",
-  authDomain: "sanremo-2026.firebaseapp.com",
-  projectId: "sanremo-2026",
-};
-
-const app = initializeApp(firebaseConfig);
+const app = initializeApp({projectId:"sanremo-2026"});
 const db = getFirestore(app);
 
 const PRESENTER_CODE="SANREMO26";
@@ -63,8 +73,7 @@ const artists=["Arisa","Bambole di Pezza","Chiello","Dargen","Ditonellapiaga","E
 let votes = Array(artists.length).fill(1);
 let top3 = [];
 
-/* ELEMENTI */
-const nicknameEl=document.getElementById("nickname");
+const nicknameEl=nicknameEl=document.getElementById("nickname");
 const codeEl=document.getElementById("code");
 const login=document.getElementById("login");
 const vote=document.getElementById("vote");
@@ -74,103 +83,63 @@ const ranking=document.getElementById("ranking");
 const podium=document.getElementById("podium");
 const countdownEl=document.getElementById("countdown");
 
-const btnStart=document.getElementById("btnStart");
-const btnSubmit=document.getElementById("btnSubmit");
-const btnShow=document.getElementById("btnShow");
-const btnReveal=document.getElementById("btnReveal");
-
-/* LOGIN */
-btnStart.onclick = () => {
-  const nickname = nicknameEl.value.trim();
-  const code = codeEl.value.trim();
-  if(!nickname || !code) return alert("Compila tutto");
+btnStart.onclick=()=>{
+  if(!nicknameEl.value||!codeEl.value)return alert("Compila tutto");
   login.classList.add("hidden");
-  if(code === PRESENTER_CODE) presenter.classList.remove("hidden");
-  else { vote.classList.remove("hidden"); renderArtists(); }
+  codeEl.value===PRESENTER_CODE ? presenter.classList.remove("hidden") : (vote.classList.remove("hidden"),renderArtists());
 };
 
-/* VOTAZIONE */
-function renderArtists() {
+function renderArtists(){
   artistsDiv.innerHTML="";
-  votes = Array(artists.length).fill(1);
   artists.forEach((a,i)=>{
     const d=document.createElement("div");
     d.className="artist";
     d.innerHTML=`${a}<input type="range" min="1" max="10" value="1"><span> 1</span>`;
-    const r=d.querySelector("input");
-    const s=d.querySelector("span");
-    r.oninput=()=>{s.textContent=" "+r.value; votes[i]=+r.value;}
+    const r=d.querySelector("input"),s=d.querySelector("span");
+    r.oninput=()=>{s.textContent=" "+r.value;votes[i]=+r.value;}
     artistsDiv.appendChild(d);
   });
 }
 
-btnSubmit.onclick = async () => {
-  await addDoc(collection(db,"votes"), {votes});
-  alert("Voto inviato!");
-};
+btnSubmit.onclick=async()=>{await addDoc(collection(db,"votes"),{votes});alert("Voto inviato!");};
 
-/* CALCOLO CLASSIFICA */
 async function calcolaClassifica(){
-  const snap = await getDocs(collection(db,"votes"));
-  let totals = artists.map((a,i)=>{
-    let sum=0,count=0;
-    snap.forEach(d=>{
-      const v=d.data().votes?.[i];
-      if(v!==undefined){sum+=v;count++;}
-    });
-    return {name:a, avg:count?sum/count:0};
-  });
-  totals.sort((a,b)=>a.avg-b.avg);
-  top3 = totals.slice(-3).reverse();
+  const snap=await getDocs(collection(db,"votes"));
+  let totals=artists.map((a,i)=>{
+    let s=0,c=0;
+    snap.forEach(d=>{const v=d.data().votes?.[i];if(v){s+=v;c++;}});
+    return {name:a,avg:c?s/c:0};
+  }).sort((a,b)=>a.avg-b.avg);
+  top3=totals.slice(-3).reverse();
   return totals.slice(0,-3);
 }
 
-/* MOSTRA CLASSIFICA */
-btnShow.onclick = async () => {
+btnShow.onclick=async()=>{
   ranking.innerHTML="";
-  const others = await calcolaClassifica();
+  const others=await calcolaClassifica();
   others.forEach((t,i)=>{
-    const pos = 30 - i;
     const bar=document.createElement("div");
-    bar.className="bar";
-    bar.style.width="0%";
-    bar.textContent=`${pos}. ${t.name} – 0.00`;
-    ranking.appendChild(bar);
-
-    // forza repaint per animazione
-    bar.getBoundingClientRect();
-
-    setTimeout(()=>{
-      bar.style.width=(t.avg*8)+"%";
-      bar.textContent=`${pos}. ${t.name} – ${t.avg.toFixed(2)}`;
-    }, 50);
+    bar.className="bar"; bar.style.width="0%";
+    ranking.appendChild(bar); bar.getBoundingClientRect();
+    setTimeout(()=>{bar.style.width=(t.avg*8)+"%";bar.textContent=`${30-i}. ${t.name} – ${t.avg.toFixed(2)}`;},50);
   });
 };
 
-/* PODIO CON COUNTDOWN */
-btnReveal.onclick = async () => {
-  await calcolaClassifica(); // sempre indipendente
-  podium.classList.add("hidden");
-  countdownEl.classList.remove("hidden");
-  let n=10;
-  countdownEl.textContent=n;
-
+btnReveal.onclick=async()=>{
+  await calcolaClassifica();
+  let n=10; countdownEl.textContent=n; countdownEl.classList.remove("hidden");
   const timer=setInterval(()=>{
-    n--;
-    if(n>0) countdownEl.textContent=n;
-    else{
-      clearInterval(timer);
-      countdownEl.classList.add("hidden");
-      showPodium();
-    }
+    n--; n>0?countdownEl.textContent=n:(clearInterval(timer),countdownEl.classList.add("hidden"),showPodium());
   },1000);
 };
 
 function showPodium(){
   podium.innerHTML="";
+  document.body.classList.add("flash"); setTimeout(()=>document.body.classList.remove("flash"),600);
+  const s=document.getElementById("winSound"); s.currentTime=0; s.play();
   top3.forEach((t,i)=>{
     const d=document.createElement("div");
-    d.className="podium-box";
+    d.className="podium-box"; d.style.animationDelay=i*0.3+"s";
     d.innerHTML=`${["🥇","🥈","🥉"][i]}<br>${t.name}<br>${t.avg.toFixed(2)}`;
     podium.appendChild(d);
   });
@@ -179,4 +148,3 @@ function showPodium(){
 </script>
 </body>
 </html>
-
