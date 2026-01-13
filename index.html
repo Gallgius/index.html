@@ -17,18 +17,18 @@ button{background:gold;color:black;font-weight:bold;cursor:pointer}
 #countdown{font-size:40px;text-align:center;font-weight:bold;margin:20px 0}
 
 /* effetti */
+.flash { animation: flashBg 0.6s; }
+@keyframes flashBg {
+  0% { background:#fff; }
+  100% { background:#0b0b1e; }
+}
+
 @keyframes glow {
   0% { box-shadow: 0 0 10px gold; transform: scale(0.9); }
   50% { box-shadow: 0 0 40px orange; transform: scale(1.05); }
   100% { box-shadow: 0 0 15px gold; transform: scale(1); }
 }
 .podium-box { animation: glow 1.2s ease-in-out; }
-
-.flash { animation: flashBg 0.6s; }
-@keyframes flashBg {
-  0% { background:#fff; }
-  100% { background:#0b0b1e; }
-}
 </style>
 </head>
 <body>
@@ -73,7 +73,7 @@ const artists=["Arisa","Bambole di Pezza","Chiello","Dargen","Ditonellapiaga","E
 let votes = Array(artists.length).fill(1);
 let top3 = [];
 
-const nicknameEl=nicknameEl=document.getElementById("nickname");
+const nicknameEl=document.getElementById("nickname");
 const codeEl=document.getElementById("code");
 const login=document.getElementById("login");
 const vote=document.getElementById("vote");
@@ -83,60 +83,100 @@ const ranking=document.getElementById("ranking");
 const podium=document.getElementById("podium");
 const countdownEl=document.getElementById("countdown");
 
-btnStart.onclick=()=>{
-  if(!nicknameEl.value||!codeEl.value)return alert("Compila tutto");
+const btnStart=document.getElementById("btnStart");
+const btnSubmit=document.getElementById("btnSubmit");
+const btnShow=document.getElementById("btnShow");
+const btnReveal=document.getElementById("btnReveal");
+
+/* LOGIN */
+btnStart.onclick = () => {
+  if(!nicknameEl.value||!codeEl.value) return alert("Compila tutto");
   login.classList.add("hidden");
-  codeEl.value===PRESENTER_CODE ? presenter.classList.remove("hidden") : (vote.classList.remove("hidden"),renderArtists());
+  if(codeEl.value===PRESENTER_CODE) presenter.classList.remove("hidden");
+  else { vote.classList.remove("hidden"); renderArtists(); }
 };
 
+/* VOTAZIONE */
 function renderArtists(){
   artistsDiv.innerHTML="";
   artists.forEach((a,i)=>{
     const d=document.createElement("div");
     d.className="artist";
     d.innerHTML=`${a}<input type="range" min="1" max="10" value="1"><span> 1</span>`;
-    const r=d.querySelector("input"),s=d.querySelector("span");
-    r.oninput=()=>{s.textContent=" "+r.value;votes[i]=+r.value;}
+    const r=d.querySelector("input"), s=d.querySelector("span");
+    r.oninput=()=>{s.textContent=" "+r.value; votes[i]=+r.value;}
     artistsDiv.appendChild(d);
   });
 }
 
 btnSubmit.onclick=async()=>{await addDoc(collection(db,"votes"),{votes});alert("Voto inviato!");};
 
+/* CALCOLO CLASSIFICA */
 async function calcolaClassifica(){
   const snap=await getDocs(collection(db,"votes"));
   let totals=artists.map((a,i)=>{
-    let s=0,c=0;
-    snap.forEach(d=>{const v=d.data().votes?.[i];if(v){s+=v;c++;}});
-    return {name:a,avg:c?s/c:0};
-  }).sort((a,b)=>a.avg-b.avg);
+    let sum=0,count=0;
+    snap.forEach(d=>{
+      const v=d.data().votes?.[i];
+      if(v!==undefined){sum+=v; count++;}
+    });
+    return {name:a, avg:count?sum/count:0};
+  });
+  totals.sort((a,b)=>a.avg-b.avg);
   top3=totals.slice(-3).reverse();
   return totals.slice(0,-3);
 }
 
+/* MOSTRA CLASSIFICA */
 btnShow.onclick=async()=>{
   ranking.innerHTML="";
   const others=await calcolaClassifica();
   others.forEach((t,i)=>{
+    const pos=30-i;
     const bar=document.createElement("div");
     bar.className="bar"; bar.style.width="0%";
     ranking.appendChild(bar); bar.getBoundingClientRect();
-    setTimeout(()=>{bar.style.width=(t.avg*8)+"%";bar.textContent=`${30-i}. ${t.name} – ${t.avg.toFixed(2)}`;},50);
+    setTimeout(()=>{bar.style.width=(t.avg*8)+"%";bar.textContent=`${pos}. ${t.name} – ${t.avg.toFixed(2)}`;},50);
   });
 };
 
+/* FUNZIONE BEEP */
+function beep(){
+  const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  const oscillator = audioCtx.createOscillator();
+  oscillator.type="square"; oscillator.frequency.setValueAtTime(800,audioCtx.currentTime);
+  oscillator.connect(audioCtx.destination);
+  oscillator.start();
+  oscillator.stop(audioCtx.currentTime + 0.15);
+}
+
+/* PODIO CON COUNTDOWN E BEEP */
 btnReveal.onclick=async()=>{
   await calcolaClassifica();
-  let n=10; countdownEl.textContent=n; countdownEl.classList.remove("hidden");
+  podium.classList.add("hidden");
+  countdownEl.classList.remove("hidden");
+  let n=10;
+  countdownEl.textContent=n;
+
   const timer=setInterval(()=>{
-    n--; n>0?countdownEl.textContent=n:(clearInterval(timer),countdownEl.classList.add("hidden"),showPodium());
+    n--;
+    if(n>0){
+      countdownEl.textContent=n;
+      beep(); // beep ad ogni numero
+    }else{
+      clearInterval(timer);
+      countdownEl.classList.add("hidden");
+      showPodium();
+    }
   },1000);
 };
 
+/* MOSTRA PODIO */
 function showPodium(){
   podium.innerHTML="";
-  document.body.classList.add("flash"); setTimeout(()=>document.body.classList.remove("flash"),600);
-  const s=document.getElementById("winSound"); s.currentTime=0; s.play();
+  document.body.classList.add("flash");
+  setTimeout(()=>document.body.classList.remove("flash"),600);
+  const s=document.getElementById("winSound"); if(s){s.currentTime=0;s.play().catch(()=>{});}
   top3.forEach((t,i)=>{
     const d=document.createElement("div");
     d.className="podium-box"; d.style.animationDelay=i*0.3+"s";
