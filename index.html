@@ -5,30 +5,30 @@
 <title>Sanremo 2026</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body{font-family:Arial;background:#0b0b1e;color:white;padding:20px}
-.box{max-width:800px;margin:auto;background:rgba(255,255,255,.05);padding:20px;border-radius:12px}
+body{font-family:Arial;background:#0b0b1e;color:white;padding:20px;position:relative;overflow:hidden;}
+.box{max-width:800px;margin:auto;background:rgba(255,255,255,.05);padding:20px;border-radius:12px;position:relative;z-index:2;}
 .hidden{display:none}
 input,button{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:none;font-size:16px}
 button{background:gold;color:black;font-weight:bold;cursor:pointer}
 .artist{margin:10px 0}
 .bar{background:linear-gradient(90deg,gold,orange);height:26px;border-radius:8px;margin:6px 0;line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width 1s}
-#podium{display:flex;gap:20px;justify-content:center;margin:20px 0}
-.podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;text-align:center;font-weight:bold}
-#countdown{font-size:40px;text-align:center;font-weight:bold;margin:20px 0}
+#podium{display:flex;gap:20px;justify-content:center;margin:20px 0;position:relative;z-index:2;}
+.podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;text-align:center;font-weight:bold;animation:glow 1.2s ease-in-out;}
+#countdown{font-size:40px;text-align:center;font-weight:bold;margin:20px 0;position:relative;z-index:2;}
 
 /* effetti */
+@keyframes glow {0%{box-shadow:0 0 10px gold;transform:scale(0.9);}50%{box-shadow:0 0 40px orange;transform:scale(1.05);}100%{box-shadow:0 0 15px gold;transform:scale(1);}}
 .flash { animation: flashBg 0.6s; }
-@keyframes flashBg { 0%{background:#fff;} 100%{background:#0b0b1e;} }
+@keyframes flashBg { 0%{background:#fff;}100%{background:#0b0b1e;} }
 
-@keyframes glow {0%{box-shadow:0 0 10px gold;transform:scale(0.9);}
-50%{box-shadow:0 0 40px orange;transform:scale(1.05);}
-100%{box-shadow:0 0 15px gold;transform:scale(1);}}
-.podium-box{animation:glow 1.2s ease-in-out;}
+#fireworks{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;display:none;}
 </style>
 </head>
 <body>
 
+<!-- Audio -->
 <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7b6b6f5a1c.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
+<audio id="beepSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2022_1.mp3"></audio>
 
 <h1>🎤 Sanremo 2026</h1>
 
@@ -51,6 +51,9 @@ button{background:gold;color:black;font-weight:bold;cursor:pointer}
   <div id="podium" class="hidden"></div>
   <div id="ranking"></div>
 </div>
+
+<!-- Video/effetto scintille -->
+<video id="fireworks" src="https://cdn.pixabay.com/vimeo/697112071/Fireworks-01-1080p.mp4" autoplay loop muted></video>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -77,21 +80,13 @@ const artistsDiv=document.getElementById("artists");
 const ranking=document.getElementById("ranking");
 const podium=document.getElementById("podium");
 const countdownEl=document.getElementById("countdown");
-
 const btnStart=document.getElementById("btnStart");
 const btnSubmit=document.getElementById("btnSubmit");
 const btnShow=document.getElementById("btnShow");
 const btnReveal=document.getElementById("btnReveal");
-
-/* AudioContext globale per beep */
-let audioCtx=null;
-function beep(){
-  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-  const osc = audioCtx.createOscillator();
-  osc.type="square"; osc.frequency.setValueAtTime(800,audioCtx.currentTime);
-  osc.connect(audioCtx.destination);
-  osc.start(); osc.stop(audioCtx.currentTime+0.15);
-}
+const winSound=document.getElementById("winSound");
+const beepSound=document.getElementById("beepSound");
+const fireworks=document.getElementById("fireworks");
 
 /* LOGIN */
 btnStart.onclick = () => {
@@ -142,20 +137,20 @@ btnShow.onclick=async()=>{
   });
 };
 
-/* PODIO CON COUNTDOWN E BEEP */
+/* PODIO CON COUNTDOWN, BEEP E VIDEO */
 btnReveal.onclick=async()=>{
   await calcolaClassifica();
   podium.classList.add("hidden");
   countdownEl.classList.remove("hidden");
   let n=10;
   countdownEl.textContent=n;
-  beep(); // beep numero 10
+  beepSound.currentTime=0; beepSound.play();
 
   const timer=setInterval(()=>{
     n--;
     if(n>0){
       countdownEl.textContent=n;
-      beep();
+      beepSound.currentTime=0; beepSound.play();
     }else{
       clearInterval(timer);
       countdownEl.classList.add("hidden");
@@ -164,12 +159,12 @@ btnReveal.onclick=async()=>{
   },1000);
 };
 
-/* MOSTRA PODIO */
 function showPodium(){
   podium.innerHTML="";
   document.body.classList.add("flash");
   setTimeout(()=>document.body.classList.remove("flash"),600);
-  const s=document.getElementById("winSound"); if(s){s.currentTime=0;s.play().catch(()=>{});}
+  winSound.currentTime=0; winSound.play();
+  fireworks.style.display="block"; // mostra video scintille
   top3.forEach((t,i)=>{
     const d=document.createElement("div");
     d.className="podium-box"; d.style.animationDelay=i*0.3+"s";
