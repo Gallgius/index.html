@@ -17,20 +17,6 @@ line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width
 .podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;
 text-align:center;font-weight:bold}
 #countdown{font-size:40px;text-align:center;margin:20px 0;font-weight:bold}
-
-/* WOW */
-@keyframes wow {
-  0% { transform: scale(0.5); opacity:0; box-shadow:0 0 0 gold; }
-  60% { transform: scale(1.1); opacity:1; box-shadow:0 0 40px orange; }
-  100% { transform: scale(1); box-shadow:0 0 15px gold; }
-}
-.podium-wow { animation: wow 1.2s ease-out; }
-
-.flash { animation: flashBg 0.6s; }
-@keyframes flashBg {
-  0% { background:#fff; }
-  100% { background:#0b0b1e; }
-}
 </style>
 </head>
 <body>
@@ -68,7 +54,7 @@ const artists=["Arisa","Bambole di Pezza","Chiello","Dargen","Ditonellapiaga","E
 let votes=Array(artists.length).fill(5);
 let allVotes=[];
 let top3=[];
-let hasVoted = localStorage.getItem("sanremo_voted")==="yes";
+let hasVoted=false;
 
 const nicknameEl=document.getElementById("nickname");
 const codeEl=document.getElementById("code");
@@ -92,7 +78,7 @@ btnStart.onclick=()=>{
   if(codeEl.value===PRESENTER_CODE) presenter.classList.remove("hidden");
   else{
     if(hasVoted){
-      alert("Hai già votato da questo dispositivo!");
+      alert("Hai già votato in questa sessione!");
     }else{
       vote.classList.remove("hidden");
       renderArtists();
@@ -117,25 +103,13 @@ btnSubmit.onclick=()=>{
   if(hasVoted){ alert("Hai già votato!"); return; }
   allVotes.push([...votes]);
   hasVoted=true;
-  localStorage.setItem("sanremo_voted","yes");
   btnSubmit.disabled=true;
   btnSubmit.textContent="Voto già inviato";
   alert("Voto inviato!");
   vote.classList.add("hidden");
 };
 
-/* BEEP */
-const AudioCtx=window.AudioContext||window.webkitAudioContext;
-const audioCtx=new AudioCtx();
-function beep(){
-  const o=audioCtx.createOscillator();
-  const g=audioCtx.createGain();
-  o.connect(g); g.connect(audioCtx.destination);
-  o.frequency.value=800; o.start();
-  setTimeout(()=>o.stop(),150);
-}
-
-/* CALCOLO */
+/* CLASSIFICA */
 function calcolaClassifica(){
   let totals=artists.map((a,i)=>{
     let sum=0,count=0;
@@ -148,7 +122,6 @@ function calcolaClassifica(){
   return totals.slice(0,-3);
 }
 
-/* CLASSIFICA */
 btnShow.onclick=()=>{
   ranking.innerHTML="";
   if(allVotes.length===0){alert("Nessun voto inserito!");return;}
@@ -161,7 +134,6 @@ btnShow.onclick=()=>{
     bar.style.width="5%";
     bar.textContent=`${pos}. ${t.name} – 0.00`;
     ranking.appendChild(bar);
-    bar.getBoundingClientRect();
     setTimeout(()=>{
       let perc=t.avg*10; if(perc<5) perc=5;
       bar.style.width=perc+"%";
@@ -173,31 +145,15 @@ btnShow.onclick=()=>{
 /* PODIO */
 btnReveal.onclick=()=>{
   calcolaClassifica();
-  podium.classList.add("hidden");
-  countdownEl.classList.remove("hidden");
-  let n=10;
-  countdownEl.textContent=n;
-  beep();
-  const timer=setInterval(()=>{
-    n--;
-    if(n>0){countdownEl.textContent=n;beep();}
-    else{clearInterval(timer);countdownEl.classList.add("hidden");showPodium();}
-  },1000);
-};
-
-function showPodium(){
   podium.innerHTML="";
-  document.body.classList.add("flash");
-  setTimeout(()=>document.body.classList.remove("flash"),600);
   top3.forEach((t,i)=>{
     const d=document.createElement("div");
-    d.className="podium-box podium-wow";
-    d.style.animationDelay=(i*0.2)+"s";
+    d.className="podium-box";
     d.innerHTML=`${["🥇","🥈","🥉"][i]}<br>${t.name}<br>${t.avg.toFixed(2)}`;
     podium.appendChild(d);
   });
   podium.classList.remove("hidden");
-}
+};
 
 /* RESET */
 btnReset.onclick=()=>{
@@ -206,16 +162,19 @@ btnReset.onclick=()=>{
   top3=[];
   ranking.innerHTML="";
   podium.innerHTML="";
-  countdownEl.classList.add("hidden");
-  localStorage.removeItem("sanremo_voted");
   hasVoted=false;
   btnSubmit.disabled=false;
   btnSubmit.textContent="Invia voti";
-  alert("Voti azzerati!");
+  alert("Voti azzerati! Sugli altri telefoni ricaricare la pagina.");
 };
 </script>
 </body>
 </html>
+
+
+
+
+
 
 
 
