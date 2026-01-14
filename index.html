@@ -15,11 +15,20 @@ button{background:gold;color:black;font-weight:bold}
 line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width 1s}
 #podium{display:flex;gap:20px;justify-content:center;margin:20px 0}
 .podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;text-align:center;font-weight:bold}
+#logo{
+  display:block;
+  margin:20px auto;
+  max-width:250px;
+  width:80%;
+  border-radius:12px;
+  box-shadow:0 0 20px gold;
+}
 </style>
 </head>
 <body>
 
 <h1>🎤 Sanremo 2026</h1>
+<img id="logo" src="logo.png" alt="Sanremo">
 
 <div class="box" id="login">
   <input id="nickname" placeholder="Nickname">
@@ -46,7 +55,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } 
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* CONFIG TUO */
 const firebaseConfig = {
   apiKey: "AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE",
   authDomain: "sanremo-2026.firebaseapp.com",
@@ -59,27 +67,16 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* DATI */
 const PRESENTER_CODE="SANREMO26";
-const artists = [
-"Arisa – Magica favola","Bambole di Pezza – Resta con me","Chiello – Ti penso sempre",
-"Dargen D'Amico – AI AI","Ditonellapiaga – Che fastidio!","Eddie Brock – Avvoltoi",
-"Elettra Lamborghini – Voilà","Enrico Nigiotti – Ogni volta che non so volare",
-"Ermal Meta – Stella stellina","Fedez & Marco Masini – Male necessario",
-"Francesco Renga – Il meglio di me","Fulminacci – Stupida sfortuna","J-Ax – Italia",
-"LDA & Aka7even – Poesie clandestine","Leo Gassmann – Naturale","Levante – Sei tu",
-"Luchè – Labirinto","Malika Ayane – Animali notturni","Mara Sattei – Le cose che non sai di me",
-"Maria Antonietta & Colombre – La felicità e basta","Michele Bravi – Prima o poi",
-"Nayt – Prima che","Patty Pravo – Opera","Raf – Ora e per sempre",
-"Sal Da Vinci – Per sempre sì","Samurai Jay – Ossessione","Sayf – Tu mi piaci tanto",
-"Serena Brancale – Qui con me","Tommaso Paradiso – I romantici","Tredici Pietro – Uomo che cade"
-];
+const artists=["Arisa","Bambole di Pezza","Chiello","Dargen","Ditonellapiaga","Eddie Brock",
+"Elettra","Nigiotti","Ermal","Fedez & Masini","Renga","Fulminacci","J-Ax","LDA","Leo","Levante",
+"Luchè","Malika","Mara","Maria A.","Michele","Nayt","Patty","Raf","Sal","Samurai","Sayf",
+"Serena","Paradiso","Tredici"];
 
 let votes=Array(artists.length).fill(5);
 let hasVoted=false;
 let top3=[];
 
-/* ELEMENTI */
 const nicknameEl=document.getElementById("nickname");
 const codeEl=document.getElementById("code");
 const login=document.getElementById("login");
@@ -88,7 +85,6 @@ const presenter=document.getElementById("presenter");
 const artistsDiv=document.getElementById("artists");
 const ranking=document.getElementById("ranking");
 const podium=document.getElementById("podium");
-
 const btnStart=document.getElementById("btnStart");
 const btnSubmit=document.getElementById("btnSubmit");
 const btnShow=document.getElementById("btnShow");
@@ -106,7 +102,7 @@ btnStart.onclick=()=>{
   }
 };
 
-/* VOTAZIONE */
+/* VOTO */
 function renderArtists(){
   artistsDiv.innerHTML="";
   artists.forEach((a,i)=>{
@@ -130,7 +126,7 @@ btnSubmit.onclick=async()=>{
   voteBox.classList.add("hidden");
 };
 
-/* CLASSIFICA */
+/* CALCOLO */
 async function calcolaClassifica(){
   const snap=await getDocs(collection(db,"votes"));
   let totals=artists.map((a,i)=>{
@@ -145,12 +141,16 @@ async function calcolaClassifica(){
   return totals.slice(0,-3);
 }
 
+/* CLASSIFICA 1 OGNI 2 SECONDI */
 btnShow.onclick=async()=>{
   ranking.innerHTML="";
   const others=await calcolaClassifica();
   if(others.length===0){alert("Nessun voto inserito");return;}
   const tot=artists.length;
-  others.forEach((t,i)=>{
+  let i=0;
+  const timer=setInterval(()=>{
+    if(i>=others.length){clearInterval(timer);return;}
+    const t=others[i];
     const pos=tot-i;
     const bar=document.createElement("div");
     bar.className="bar";
@@ -160,8 +160,9 @@ btnShow.onclick=async()=>{
     setTimeout(()=>{
       bar.style.width=(t.avg*10)+"%";
       bar.textContent=`${pos}. ${t.name} – ${t.avg.toFixed(2)}`;
-    },50+i*40);
-  });
+    },100);
+    i++;
+  },2000);
 };
 
 /* PODIO */
@@ -194,23 +195,6 @@ btnReset.onclick=async()=>{
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
