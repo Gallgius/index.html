@@ -9,14 +9,12 @@ body{font-family:Arial;background:#0b0b1e;color:white;padding:20px}
 .box{max-width:800px;margin:auto;background:rgba(255,255,255,.05);padding:20px;border-radius:12px}
 .hidden{display:none}
 input,button{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:none;font-size:16px}
-button{background:gold;color:black;font-weight:bold;cursor:pointer}
+button{background:gold;color:black;font-weight:bold}
 .artist{margin:10px 0}
 .bar{background:linear-gradient(90deg,gold,orange);height:26px;border-radius:8px;margin:6px 0;
 line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width 1s}
 #podium{display:flex;gap:20px;justify-content:center;margin:20px 0}
-.podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;
-text-align:center;font-weight:bold}
-#countdown{font-size:40px;text-align:center;margin:20px 0;font-weight:bold}
+.podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;text-align:center;font-weight:bold}
 </style>
 </head>
 <body>
@@ -39,12 +37,29 @@ text-align:center;font-weight:bold}
   <button id="btnShow">MOSTRA CLASSIFICA</button>
   <button id="btnReveal">RIVELA PODIO</button>
   <button id="btnReset">RESET VOTI</button>
-  <div id="countdown" class="hidden"></div>
   <div id="podium" class="hidden"></div>
   <div id="ranking"></div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* CONFIG TUO */
+const firebaseConfig = {
+  apiKey: "AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE",
+  authDomain: "sanremo-2026.firebaseapp.com",
+  projectId: "sanremo-2026",
+  storageBucket: "sanremo-2026.appspot.com",
+  messagingSenderId: "585160817288",
+  appId: "1:585160817288:web:71c4552fc2cfd73c9dfd3d"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* DATI */
 const PRESENTER_CODE="SANREMO26";
 const artists=["Arisa","Bambole di Pezza","Chiello","Dargen","Ditonellapiaga","Eddie Brock",
 "Elettra","Nigiotti","Ermal","Fedez & Masini","Renga","Fulminacci","J-Ax","LDA","Leo","Levante",
@@ -52,19 +67,19 @@ const artists=["Arisa","Bambole di Pezza","Chiello","Dargen","Ditonellapiaga","E
 "Serena","Paradiso","Tredici"];
 
 let votes=Array(artists.length).fill(5);
-let allVotes=[];
-let top3=[];
 let hasVoted=false;
+let top3=[];
 
+/* ELEMENTI */
 const nicknameEl=document.getElementById("nickname");
 const codeEl=document.getElementById("code");
 const login=document.getElementById("login");
-const vote=document.getElementById("vote");
+const voteBox=document.getElementById("vote");
 const presenter=document.getElementById("presenter");
 const artistsDiv=document.getElementById("artists");
 const ranking=document.getElementById("ranking");
 const podium=document.getElementById("podium");
-const countdownEl=document.getElementById("countdown");
+
 const btnStart=document.getElementById("btnStart");
 const btnSubmit=document.getElementById("btnSubmit");
 const btnShow=document.getElementById("btnShow");
@@ -77,44 +92,43 @@ btnStart.onclick=()=>{
   login.classList.add("hidden");
   if(codeEl.value===PRESENTER_CODE) presenter.classList.remove("hidden");
   else{
-    if(hasVoted){
-      alert("Hai già votato in questa sessione!");
-    }else{
-      vote.classList.remove("hidden");
-      renderArtists();
-    }
+    if(hasVoted) alert("Hai già votato!");
+    else{voteBox.classList.remove("hidden");renderArtists();}
   }
 };
 
-/* VOTO */
+/* VOTAZIONE */
 function renderArtists(){
   artistsDiv.innerHTML="";
   artists.forEach((a,i)=>{
     const d=document.createElement("div");
     d.className="artist";
     d.innerHTML=`${a}<input type="range" min="1" max="10" value="5"><span> 5</span>`;
-    const r=d.querySelector("input"),s=d.querySelector("span");
+    const r=d.querySelector("input");
+    const s=d.querySelector("span");
     r.oninput=()=>{s.textContent=" "+r.value;votes[i]=+r.value;}
     artistsDiv.appendChild(d);
   });
 }
 
-btnSubmit.onclick=()=>{
-  if(hasVoted){ alert("Hai già votato!"); return; }
-  allVotes.push([...votes]);
+btnSubmit.onclick=async()=>{
+  if(hasVoted){alert("Hai già votato!");return;}
+  await addDoc(collection(db,"votes"),{votes});
   hasVoted=true;
   btnSubmit.disabled=true;
   btnSubmit.textContent="Voto già inviato";
   alert("Voto inviato!");
-  vote.classList.add("hidden");
+  voteBox.classList.add("hidden");
 };
 
 /* CLASSIFICA */
-function calcolaClassifica(){
+async function calcolaClassifica(){
+  const snap=await getDocs(collection(db,"votes"));
   let totals=artists.map((a,i)=>{
     let sum=0,count=0;
-    allVotes.forEach(v=>{
-      if(v[i]!==undefined){sum+=v[i];count++;}
+    snap.forEach(d=>{
+      const v=d.data().votes?.[i];
+      if(v!==undefined){sum+=v;count++;}
     });
     return {name:a,avg:count?sum/count:0};
   }).sort((a,b)=>a.avg-b.avg);
@@ -122,10 +136,10 @@ function calcolaClassifica(){
   return totals.slice(0,-3);
 }
 
-btnShow.onclick=()=>{
+btnShow.onclick=async()=>{
   ranking.innerHTML="";
-  if(allVotes.length===0){alert("Nessun voto inserito!");return;}
-  const others=calcolaClassifica();
+  const others=await calcolaClassifica();
+  if(others.length===0){alert("Nessun voto inserito");return;}
   const tot=artists.length;
   others.forEach((t,i)=>{
     const pos=tot-i;
@@ -135,16 +149,15 @@ btnShow.onclick=()=>{
     bar.textContent=`${pos}. ${t.name} – 0.00`;
     ranking.appendChild(bar);
     setTimeout(()=>{
-      let perc=t.avg*10; if(perc<5) perc=5;
-      bar.style.width=perc+"%";
+      bar.style.width=(t.avg*10)+"%";
       bar.textContent=`${pos}. ${t.name} – ${t.avg.toFixed(2)}`;
     },50+i*40);
   });
 };
 
 /* PODIO */
-btnReveal.onclick=()=>{
-  calcolaClassifica();
+btnReveal.onclick=async()=>{
+  await calcolaClassifica();
   podium.innerHTML="";
   top3.forEach((t,i)=>{
     const d=document.createElement("div");
@@ -156,21 +169,22 @@ btnReveal.onclick=()=>{
 };
 
 /* RESET */
-btnReset.onclick=()=>{
+btnReset.onclick=async()=>{
   if(!confirm("Cancellare tutti i voti?")) return;
-  allVotes=[];
-  top3=[];
+  const snap=await getDocs(collection(db,"votes"));
+  for(const d of snap.docs){
+    await deleteDoc(doc(db,"votes",d.id));
+  }
   ranking.innerHTML="";
   podium.innerHTML="";
   hasVoted=false;
   btnSubmit.disabled=false;
   btnSubmit.textContent="Invia voti";
-  alert("Voti azzerati! Sugli altri telefoni ricaricare la pagina.");
+  alert("Voti cancellati dal database!");
 };
 </script>
 </body>
 </html>
-
 
 
 
