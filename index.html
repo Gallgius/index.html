@@ -52,6 +52,7 @@ text-align:center;font-weight:bold}
 <div class="box hidden" id="presenter">
   <button id="btnShow">MOSTRA CLASSIFICA</button>
   <button id="btnReveal">RIVELA PODIO</button>
+  <button id="btnReset">RESET VOTI</button>
   <div id="countdown" class="hidden"></div>
   <div id="podium" class="hidden"></div>
   <div id="ranking"></div>
@@ -81,6 +82,7 @@ const btnStart=document.getElementById("btnStart");
 const btnSubmit=document.getElementById("btnSubmit");
 const btnShow=document.getElementById("btnShow");
 const btnReveal=document.getElementById("btnReveal");
+const btnReset=document.getElementById("btnReset");
 
 /* LOGIN */
 btnStart.onclick=()=>{
@@ -132,31 +134,29 @@ function calcolaClassifica(){
   return totals.slice(0,-3);
 }
 
-/* MOSTRA CLASSIFICA – BARRE FUNZIONANTI */
+/* CLASSIFICA */
 btnShow.onclick=()=>{
   ranking.innerHTML="";
+  if(allVotes.length===0){alert("Nessun voto inserito!");return;}
   const others=calcolaClassifica();
   const tot=artists.length;
-
   others.forEach((t,i)=>{
     const pos=tot-i;
     const bar=document.createElement("div");
     bar.className="bar";
-    bar.style.width="0%";
+    bar.style.width="5%";
     bar.textContent=`${pos}. ${t.name} – 0.00`;
     ranking.appendChild(bar);
-
-    bar.getBoundingClientRect(); // forza repaint
-
+    bar.getBoundingClientRect();
     setTimeout(()=>{
-      const perc=Math.min(100, t.avg*10); // max 10 punti
+      let perc=t.avg*10; if(perc<5) perc=5;
       bar.style.width=perc+"%";
       bar.textContent=`${pos}. ${t.name} – ${t.avg.toFixed(2)}`;
-    },50+i*30);
+    },50+i*40);
   });
 };
 
-/* RIVELA PODIO */
+/* PODIO */
 btnReveal.onclick=()=>{
   calcolaClassifica();
   podium.classList.add("hidden");
@@ -166,14 +166,8 @@ btnReveal.onclick=()=>{
   beep();
   const timer=setInterval(()=>{
     n--;
-    if(n>0){
-      countdownEl.textContent=n;
-      beep();
-    }else{
-      clearInterval(timer);
-      countdownEl.classList.add("hidden");
-      showPodium();
-    }
+    if(n>0){countdownEl.textContent=n;beep();}
+    else{clearInterval(timer);countdownEl.classList.add("hidden");showPodium();}
   },1000);
 };
 
@@ -190,6 +184,17 @@ function showPodium(){
   });
   podium.classList.remove("hidden");
 }
+
+/* RESET */
+btnReset.onclick=()=>{
+  if(!confirm("Cancellare tutti i voti?")) return;
+  allVotes=[];
+  top3=[];
+  ranking.innerHTML="";
+  podium.innerHTML="";
+  countdownEl.classList.add("hidden");
+  alert("Voti azzerati!");
+};
 </script>
 </body>
 </html>
