@@ -132,21 +132,27 @@ function calcolaClassifica(){
   return totals.slice(0,-3);
 }
 
-/* MOSTRA CLASSIFICA */
+/* MOSTRA CLASSIFICA – BARRE FUNZIONANTI */
 btnShow.onclick=()=>{
   ranking.innerHTML="";
   const others=calcolaClassifica();
+  const tot=artists.length;
+
   others.forEach((t,i)=>{
-    const pos=30-i;
+    const pos=tot-i;
     const bar=document.createElement("div");
     bar.className="bar";
     bar.style.width="0%";
+    bar.textContent=`${pos}. ${t.name} – 0.00`;
     ranking.appendChild(bar);
-    bar.getBoundingClientRect();
+
+    bar.getBoundingClientRect(); // forza repaint
+
     setTimeout(()=>{
-      bar.style.width=(t.avg*8)+"%";
+      const perc=Math.min(100, t.avg*10); // max 10 punti
+      bar.style.width=perc+"%";
       bar.textContent=`${pos}. ${t.name} – ${t.avg.toFixed(2)}`;
-    },50);
+    },50+i*30);
   });
 };
 
@@ -187,3 +193,9 @@ function showPodium(){
 </script>
 </body>
 </html>
+
+
+
+
+
+
