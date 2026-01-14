@@ -5,30 +5,21 @@
 <title>Sanremo 2026</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body{font-family:Arial;background:#0b0b1e;color:white;padding:20px;position:relative;overflow:hidden;}
-.box{max-width:800px;margin:auto;background:rgba(255,255,255,.05);padding:20px;border-radius:12px;position:relative;z-index:2;}
+body{font-family:Arial;background:#0b0b1e;color:white;padding:20px}
+.box{max-width:800px;margin:auto;background:rgba(255,255,255,.05);padding:20px;border-radius:12px}
 .hidden{display:none}
 input,button{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:none;font-size:16px}
 button{background:gold;color:black;font-weight:bold;cursor:pointer}
 .artist{margin:10px 0}
-.bar{background:linear-gradient(90deg,gold,orange);height:26px;border-radius:8px;margin:6px 0;line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width 1s}
-#podium{display:flex;gap:20px;justify-content:center;margin:20px 0;position:relative;z-index:2;}
-.podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;text-align:center;font-weight:bold;animation:glow 1.2s ease-in-out;}
-#countdown{font-size:40px;text-align:center;font-weight:bold;margin:20px 0;position:relative;z-index:2;}
-
-/* effetti */
-@keyframes glow {0%{box-shadow:0 0 10px gold;transform:scale(0.9);}50%{box-shadow:0 0 40px orange;transform:scale(1.05);}100%{box-shadow:0 0 15px gold;transform:scale(1);}}
-.flash { animation: flashBg 0.6s; }
-@keyframes flashBg { 0%{background:#fff;}100%{background:#0b0b1e;} }
-
-#fireworks{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;display:none;}
+.bar{background:linear-gradient(90deg,gold,orange);height:26px;border-radius:8px;margin:6px 0;
+line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width 1s}
+#podium{display:flex;gap:20px;justify-content:center;margin:20px 0}
+.podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;
+text-align:center;font-weight:bold}
+#countdown{font-size:40px;text-align:center;margin:20px 0;font-weight:bold}
 </style>
 </head>
 <body>
-
-<!-- Audio -->
-<audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7b6b6f5a1c.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
-<audio id="beepSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2022_1.mp3"></audio>
 
 <h1>🎤 Sanremo 2026</h1>
 
@@ -52,9 +43,6 @@ button{background:gold;color:black;font-weight:bold;cursor:pointer}
   <div id="ranking"></div>
 </div>
 
-<!-- Video/effetto scintille -->
-<video id="fireworks" src="https://cdn.pixabay.com/vimeo/697112071/Fireworks-01-1080p.mp4" autoplay loop muted></video>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -68,8 +56,8 @@ const artists=["Arisa","Bambole di Pezza","Chiello","Dargen","Ditonellapiaga","E
 "Luchè","Malika","Mara","Maria A.","Michele","Nayt","Patty","Raf","Sal","Samurai","Sayf",
 "Serena","Paradiso","Tredici"];
 
-let votes = Array(artists.length).fill(1);
-let top3 = [];
+let votes=Array(artists.length).fill(5);
+let top3=[];
 
 const nicknameEl=document.getElementById("nickname");
 const codeEl=document.getElementById("code");
@@ -84,42 +72,55 @@ const btnStart=document.getElementById("btnStart");
 const btnSubmit=document.getElementById("btnSubmit");
 const btnShow=document.getElementById("btnShow");
 const btnReveal=document.getElementById("btnReveal");
-const winSound=document.getElementById("winSound");
-const beepSound=document.getElementById("beepSound");
-const fireworks=document.getElementById("fireworks");
 
 /* LOGIN */
-btnStart.onclick = () => {
+btnStart.onclick=()=>{
   if(!nicknameEl.value||!codeEl.value) return alert("Compila tutto");
   login.classList.add("hidden");
   if(codeEl.value===PRESENTER_CODE) presenter.classList.remove("hidden");
-  else { vote.classList.remove("hidden"); renderArtists(); }
+  else{vote.classList.remove("hidden");renderArtists();}
 };
 
-/* VOTAZIONE */
+/* VOTO */
 function renderArtists(){
   artistsDiv.innerHTML="";
   artists.forEach((a,i)=>{
     const d=document.createElement("div");
     d.className="artist";
-    d.innerHTML=`${a}<input type="range" min="1" max="10" value="1"><span> 1</span>`;
-    const r=d.querySelector("input"), s=d.querySelector("span");
-    r.oninput=()=>{s.textContent=" "+r.value; votes[i]=+r.value;}
+    d.innerHTML=`${a}<input type="range" min="1" max="10" value="5"><span> 5</span>`;
+    const r=d.querySelector("input"),s=d.querySelector("span");
+    r.oninput=()=>{s.textContent=" "+r.value;votes[i]=+r.value;}
     artistsDiv.appendChild(d);
   });
 }
 
-btnSubmit.onclick=async()=>{await addDoc(collection(db,"votes"),{votes});alert("Voto inviato!");};
+btnSubmit.onclick=async()=>{
+  await addDoc(collection(db,"votes"),{votes});
+  alert("Voto inviato!");
+};
 
-/* CALCOLO CLASSIFICA */
+/* BEEP */
+const AudioCtx=window.AudioContext||window.webkitAudioContext;
+const audioCtx=new AudioCtx();
+function beep(){
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  o.connect(g); g.connect(audioCtx.destination);
+  o.frequency.value=800; o.start();
+  setTimeout(()=>o.stop(),150);
+}
+
+/* CALCOLO */
 async function calcolaClassifica(){
   const snap=await getDocs(collection(db,"votes"));
   let totals=artists.map((a,i)=>{
     let sum=0,count=0;
-    snap.forEach(d=>{const v=d.data().votes?.[i];if(v!==undefined){sum+=v;count++;}});
+    snap.forEach(d=>{
+      const v=d.data().votes?.[i];
+      if(v!==undefined){sum+=v;count++;}
+    });
     return {name:a,avg:count?sum/count:0};
-  });
-  totals.sort((a,b)=>a.avg-b.avg);
+  }).sort((a,b)=>a.avg-b.avg);
   top3=totals.slice(-3).reverse();
   return totals.slice(0,-3);
 }
@@ -131,26 +132,30 @@ btnShow.onclick=async()=>{
   others.forEach((t,i)=>{
     const pos=30-i;
     const bar=document.createElement("div");
-    bar.className="bar"; bar.style.width="0%";
-    ranking.appendChild(bar); bar.getBoundingClientRect();
-    setTimeout(()=>{bar.style.width=(t.avg*8)+"%";bar.textContent=`${pos}. ${t.name} – ${t.avg.toFixed(2)}`;},50);
+    bar.className="bar";
+    bar.style.width="0%";
+    ranking.appendChild(bar);
+    bar.getBoundingClientRect();
+    setTimeout(()=>{
+      bar.style.width=(t.avg*8)+"%";
+      bar.textContent=`${pos}. ${t.name} – ${t.avg.toFixed(2)}`;
+    },50);
   });
 };
 
-/* PODIO CON COUNTDOWN, BEEP E VIDEO */
+/* RIVELA PODIO */
 btnReveal.onclick=async()=>{
   await calcolaClassifica();
   podium.classList.add("hidden");
   countdownEl.classList.remove("hidden");
   let n=10;
   countdownEl.textContent=n;
-  beepSound.currentTime=0; beepSound.play();
-
+  beep();
   const timer=setInterval(()=>{
     n--;
     if(n>0){
       countdownEl.textContent=n;
-      beepSound.currentTime=0; beepSound.play();
+      beep();
     }else{
       clearInterval(timer);
       countdownEl.classList.add("hidden");
@@ -161,13 +166,9 @@ btnReveal.onclick=async()=>{
 
 function showPodium(){
   podium.innerHTML="";
-  document.body.classList.add("flash");
-  setTimeout(()=>document.body.classList.remove("flash"),600);
-  winSound.currentTime=0; winSound.play();
-  fireworks.style.display="block"; // mostra video scintille
   top3.forEach((t,i)=>{
     const d=document.createElement("div");
-    d.className="podium-box"; d.style.animationDelay=i*0.3+"s";
+    d.className="podium-box";
     d.innerHTML=`${["🥇","🥈","🥉"][i]}<br>${t.name}<br>${t.avg.toFixed(2)}`;
     podium.appendChild(d);
   });
