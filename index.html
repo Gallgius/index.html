@@ -68,6 +68,7 @@ const artists=["Arisa","Bambole di Pezza","Chiello","Dargen","Ditonellapiaga","E
 let votes=Array(artists.length).fill(5);
 let allVotes=[];
 let top3=[];
+let hasVoted = localStorage.getItem("sanremo_voted")==="yes";
 
 const nicknameEl=document.getElementById("nickname");
 const codeEl=document.getElementById("code");
@@ -89,7 +90,14 @@ btnStart.onclick=()=>{
   if(!nicknameEl.value||!codeEl.value) return alert("Compila tutto");
   login.classList.add("hidden");
   if(codeEl.value===PRESENTER_CODE) presenter.classList.remove("hidden");
-  else{vote.classList.remove("hidden");renderArtists();}
+  else{
+    if(hasVoted){
+      alert("Hai già votato da questo dispositivo!");
+    }else{
+      vote.classList.remove("hidden");
+      renderArtists();
+    }
+  }
 };
 
 /* VOTO */
@@ -106,8 +114,14 @@ function renderArtists(){
 }
 
 btnSubmit.onclick=()=>{
+  if(hasVoted){ alert("Hai già votato!"); return; }
   allVotes.push([...votes]);
+  hasVoted=true;
+  localStorage.setItem("sanremo_voted","yes");
+  btnSubmit.disabled=true;
+  btnSubmit.textContent="Voto già inviato";
   alert("Voto inviato!");
+  vote.classList.add("hidden");
 };
 
 /* BEEP */
@@ -193,11 +207,21 @@ btnReset.onclick=()=>{
   ranking.innerHTML="";
   podium.innerHTML="";
   countdownEl.classList.add("hidden");
+  localStorage.removeItem("sanremo_voted");
+  hasVoted=false;
+  btnSubmit.disabled=false;
+  btnSubmit.textContent="Invia voti";
   alert("Voti azzerati!");
 };
 </script>
 </body>
 </html>
+
+
+
+
+
+
 
 
 
