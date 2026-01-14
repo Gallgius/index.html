@@ -28,7 +28,7 @@ line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width
 <body>
 
 <h1>🎤 Sanremo 2026</h1>
-<img id="logo" src="Logo_Festival_di_Sanremo_2026" alt="Sanremo">
+<img id="logo" src="logo.png" alt="Sanremo">
 
 <div class="box" id="login">
   <input id="nickname" placeholder="Nickname">
@@ -141,17 +141,16 @@ async function calcolaClassifica(){
   return totals.slice(0,-3);
 }
 
-/* CLASSIFICA 1 OGNI 2 SECONDI */
+/* CLASSIFICA 1 OGNI 2 SECONDI (numerazione corretta dal 30 al 4) */
 btnShow.onclick=async()=>{
   ranking.innerHTML="";
   const others=await calcolaClassifica();
   if(others.length===0){alert("Nessun voto inserito");return;}
-  const tot=artists.length;
   let i=0;
   const timer=setInterval(()=>{
     if(i>=others.length){clearInterval(timer);return;}
     const t=others[i];
-    const pos=tot-i;
+    const pos = (others.length - i) + 3;  // numerazione corretta dal 30 al 4
     const bar=document.createElement("div");
     bar.className="bar";
     bar.style.width="5%";
@@ -195,6 +194,7 @@ btnReset.onclick=async()=>{
 </script>
 </body>
 </html>
+
 
 
 
