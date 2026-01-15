@@ -15,27 +15,20 @@ button{background:gold;color:black;font-weight:bold}
 line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width 1s}
 #podium{display:flex;gap:20px;justify-content:center;margin:20px 0}
 .podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;text-align:center;font-weight:bold}
-
-/* LOGO */
-.logo-normal{
+#logo{
+  display:block;
+  margin:20px auto;
   max-width:250px;
   width:80%;
-  margin:20px auto;
-  display:block;
-}
-.logo-presenter{
-  max-width:500px;
-  width:90%;
-  margin:40px auto;
-  display:block;
-  box-shadow:0 0 25px gold;
+  border-radius:12px;
+  box-shadow:0 0 20px gold;
 }
 </style>
 </head>
 <body>
 
 <h1>🎤 Sanremo 2026</h1>
-<img id="logo" src="logo.png" class="logo-normal" alt="Sanremo">
+<img id="logo" src="logo.png" alt="Sanremo">
 
 <div class="box" id="login">
   <input id="nickname" placeholder="Nickname">
@@ -98,26 +91,18 @@ const btnShow=document.getElementById("btnShow");
 const btnReveal=document.getElementById("btnReveal");
 const btnReset=document.getElementById("btnReset");
 
-/* LOGIN – MODIFICA SOLO QUI */
+/* LOGIN */
 btnStart.onclick=()=>{
   if(!nicknameEl.value||!codeEl.value) return alert("Compila tutto");
   login.classList.add("hidden");
-  const logo=document.getElementById("logo");
-
-  if(codeEl.value===PRESENTER_CODE){
-    presenter.classList.remove("hidden");
-    logo.className="logo-presenter";   // grande e centrato
-  }else{
+  if(codeEl.value===PRESENTER_CODE) presenter.classList.remove("hidden");
+  else{
     if(hasVoted) alert("Hai già votato!");
-    else{
-      voteBox.classList.remove("hidden");
-      renderArtists();
-      logo.className="logo-normal";    // versione app
-    }
+    else{voteBox.classList.remove("hidden");renderArtists();}
   }
 };
 
-/* VOTI */
+/* VOTO */
 function renderArtists(){
   artistsDiv.innerHTML="";
   artists.forEach((a,i)=>{
@@ -141,7 +126,7 @@ btnSubmit.onclick=async()=>{
   voteBox.classList.add("hidden");
 };
 
-/* CLASSIFICA E PODIO (INALTERATI) */
+/* CALCOLO */
 async function calcolaClassifica(){
   const snap=await getDocs(collection(db,"votes"));
   let totals=artists.map((a,i)=>{
@@ -156,14 +141,16 @@ async function calcolaClassifica(){
   return totals.slice(0,-3);
 }
 
+/* CLASSIFICA 1 OGNI 2 SECONDI (numerazione corretta dal 30 al 4) */
 btnShow.onclick=async()=>{
   ranking.innerHTML="";
   const others=await calcolaClassifica();
+  if(others.length===0){alert("Nessun voto inserito");return;}
   let i=0;
   const timer=setInterval(()=>{
     if(i>=others.length){clearInterval(timer);return;}
     const t=others[i];
-    const pos=(others.length-i)+3;
+    const pos = (others.length - i) + 3;  // numerazione corretta dal 30 al 4
     const bar=document.createElement("div");
     bar.className="bar";
     bar.style.width="5%";
@@ -177,6 +164,7 @@ btnShow.onclick=async()=>{
   },2000);
 };
 
+/* PODIO */
 btnReveal.onclick=async()=>{
   await calcolaClassifica();
   podium.innerHTML="";
@@ -189,6 +177,7 @@ btnReveal.onclick=async()=>{
   podium.classList.remove("hidden");
 };
 
+/* RESET */
 btnReset.onclick=async()=>{
   if(!confirm("Cancellare tutti i voti?")) return;
   const snap=await getDocs(collection(db,"votes"));
@@ -200,11 +189,12 @@ btnReset.onclick=async()=>{
   hasVoted=false;
   btnSubmit.disabled=false;
   btnSubmit.textContent="Invia voti";
-  alert("Voti cancellati!");
+  alert("Voti cancellati dal database!");
 };
 </script>
 </body>
 </html>
+
 
 
 
