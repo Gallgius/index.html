@@ -28,7 +28,27 @@ line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width
 <body>
 
 <h1>🎤 Sanremo 2026</h1>
-<img id="logo" src="Logo_Festival_di_Sanremo_2026.svg.png" alt="Sanremo">
+background:
+    linear-gradient(
+      rgba(10, 10, 40, 0.85),
+      rgba(10, 10, 40, 0.85)
+    ),
+    url("Logo_Festival_di_Sanremo_2026.svg.png");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+  @media (max-width: 768px) {
+  body {
+    background-size: contain;
+    background-position: top center;
+    padding-top: 160px;
+  }
+}
+h1, h2 { text-align: center; }
 
 <div class="box" id="login">
   <input id="nickname" placeholder="Nickname">
