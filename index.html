@@ -16,18 +16,12 @@ line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width
 #podium{display:flex;gap:20px;justify-content:center;margin:20px 0}
 .podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;text-align:center;font-weight:bold}
 #logo{
- .logo-normal{
-  max-width:250px;
-  width:cover;
+  display:block;
   margin:20px auto;
-  display:block;
-}
-
-.logo-presenter{
-  max-width:500px;
-  width:cover;
-  margin:40px auto;
-  display:block;
+  max-width:250px;
+  width:80%;
+  border-radius:12px;
+  box-shadow:0 0 20px gold;
 }
 </style>
 </head>
@@ -129,15 +123,10 @@ const btnReset=document.getElementById("btnReset");
 btnStart.onclick=()=>{
   if(!nicknameEl.value||!codeEl.value) return alert("Compila tutto");
   login.classList.add("hidden");
-
-  const logo = document.getElementById("logo");
-
-  if(codeEl.value===PRESENTER_CODE){
-    presenter.classList.remove("hidden");
-    logo.className = "logo-presenter";   // grande e centrato
-  }else{
-    voteBox.classList.remove("hidden");
-    logo.className = "logo-normal";      // versione app
+  if(codeEl.value===PRESENTER_CODE) presenter.classList.remove("hidden");
+  else{
+    if(hasVoted) alert("Hai già votato!");
+    else{voteBox.classList.remove("hidden");renderArtists();}
   }
 };
 
