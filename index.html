@@ -29,7 +29,20 @@ line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width
 
 <h1>🎤 Sanremo 2026</h1>
 <img id="logo" src="Logo_Festival_di_Sanremo_2026.svg.png" alt="Sanremo">
+.logo-normal{
+  max-width:250px;
+  width:80%;
+  margin:20px auto;
+  display:block;
+}
 
+.logo-presenter{
+  max-width:500px;
+  width:90%;
+  margin:40px auto;
+  display:block;
+}
+  
 <div class="box" id="login">
   <input id="nickname" placeholder="Nickname">
   <input id="code" placeholder="Codice">
@@ -123,10 +136,15 @@ const btnReset=document.getElementById("btnReset");
 btnStart.onclick=()=>{
   if(!nicknameEl.value||!codeEl.value) return alert("Compila tutto");
   login.classList.add("hidden");
-  if(codeEl.value===PRESENTER_CODE) presenter.classList.remove("hidden");
-  else{
-    if(hasVoted) alert("Hai già votato!");
-    else{voteBox.classList.remove("hidden");renderArtists();}
+
+  const logo = document.getElementById("logo");
+
+  if(codeEl.value===PRESENTER_CODE){
+    presenter.classList.remove("hidden");
+    logo.className = "logo-presenter";   // grande e centrato
+  }else{
+    voteBox.classList.remove("hidden");
+    logo.className = "logo-normal";      // versione app
   }
 };
 
