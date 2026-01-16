@@ -108,7 +108,7 @@ function renderArtists(){
   artists.forEach((a,i)=>{
     const d=document.createElement("div");
     d.className="artist";
-    d.innerHTML=`${a}<input type="range" min="1" max="10" value="5"><span> 5</span>`;
+    d.innerHTML=`${a}<input type="range" min="1" max="10" value="1"><span> 5</span>`;
     const r=d.querySelector("input");
     const s=d.querySelector("span");
     r.oninput=()=>{s.textContent=" "+r.value;votes[i]=+r.value;}
