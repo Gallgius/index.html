@@ -28,7 +28,7 @@ line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width
 <body>
 
 <h1>🎤 Sanremo 2026</h1>
-<img id="logo" src="sanremo-_thumb_1073826.png" alt="Sanremo">
+<img id="logo" src="Logo_Festival_di_Sanremo_2026.svg.png" alt="Sanremo">
 
 <div class="box" id="login">
   <input id="nickname" placeholder="Nickname">
@@ -68,10 +68,38 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const PRESENTER_CODE="SANREMO26";
-const artists=["Arisa","Bambole di Pezza","Chiello","Dargen","Ditonellapiaga","Eddie Brock",
-"Elettra","Nigiotti","Ermal","Fedez & Masini","Renga","Fulminacci","J-Ax","LDA","Leo","Levante",
-"Luchè","Malika","Mara","Maria A.","Michele","Nayt","Patty","Raf","Sal","Samurai","Sayf",
-"Serena","Paradiso","Tredici"];
+const artists = [
+"Arisa – Magica favola",
+"Bambole di Pezza – Resta con me",
+"Chiello – Ti penso sempre",
+"Dargen D'Amico – AI AI",
+"Ditonellapiaga – Che fastidio!",
+"Eddie Brock – Avvoltoi",
+"Elettra Lamborghini – Voilà",
+"Enrico Nigiotti – Ogni volta che non so volare",
+"Ermal Meta – Stella stellina",
+"Fedez & Marco Masini – Male necessario",
+"Francesco Renga – Il meglio di me",
+"Fulminacci – Stupida sfortuna",
+"J-Ax – Italia",
+"LDA & Aka7even – Poesie clandestine",
+"Leo Gassmann – Naturale",
+"Levante – Sei tu",
+"Luchè – Labirinto",
+"Malika Ayane – Animali notturni",
+"Mara Sattei – Le cose che non sai di me",
+"Maria Antonietta & Colombre – La felicità e basta",
+"Michele Bravi – Prima o poi",
+"Nayt – Prima che",
+"Patty Pravo – Opera",
+"Raf – Ora e per sempre",
+"Sal Da Vinci – Per sempre sì",
+"Samurai Jay – Ossessione",
+"Sayf – Tu mi piaci tanto",
+"Serena Brancale – Qui con me",
+"Tommaso Paradiso – I romantici",
+"Tredici Pietro – Uomo che cade"
+];
 
 let votes=Array(artists.length).fill(5);
 let hasVoted=false;
