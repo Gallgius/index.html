@@ -10,8 +10,8 @@ body{
   color:white;
   padding:20px;
   min-height:100vh;
-  background: url("sfondo.png") no-repeat center 25%;
-  background-size: cover;
+  background:#0b0b1e url("A_digital_illustration_music-themed_background_fea.png") no-repeat center center fixed;
+  background-size:cover;
 }
 .box{max-width:800px;margin:auto;background:rgba(255,255,255,.05);padding:20px;border-radius:12px}
 .hidden{display:none}
@@ -20,14 +20,16 @@ button{background:gold;color:black;font-weight:bold;cursor:pointer}
 .artist{margin:10px 0}
 .bar{background:linear-gradient(90deg,gold,orange);height:26px;border-radius:8px;margin:6px 0;line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width 1s}
 #podium{display:flex;gap:20px;justify-content:center;margin:20px 0;flex-wrap:wrap}
-.podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;text-align:center;font-weight:bold}
-.logo-normal{max-width:250px;width:80%;margin:20px auto;display:block}
+.podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;text-align:center;font-weight:bold;position:relative;}
+#logo{display:block;margin:20px auto;max-width:300px;position:relative;z-index:10}
 .logo-presenter{max-width:500px;width:90%;margin:40px auto;display:block;box-shadow:0 0 25px gold}
- #logo{
-  position: relative;
-  z-index: 10;
+
+/* Glow animato medaglie */
+@keyframes glow {
+  0% { box-shadow: 0 0 5px gold; }
+  50% { box-shadow: 0 0 20px gold; }
+  100% { box-shadow: 0 0 5px gold; }
 }
- 
 </style>
 </head>
 <body>
@@ -73,7 +75,10 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const PRESENTER_CODE="SANREMO26";
-const artists = [ "Arisa – Magica favola", "Bambole di Pezza – Resta con me", "Chiello – Ti penso sempre", "Dargen D'Amico – AI AI", "Ditonellapiaga – Che fastidio!", "Eddie Brock – Avvoltoi", "Elettra Lamborghini – Voilà", "Enrico Nigiotti – Ogni volta che non so volare", "Ermal Meta – Stella stellina", "Fedez & Marco Masini – Male necessario", "Francesco Renga – Il meglio di me", "Fulminacci – Stupida sfortuna", "J-Ax – Italia", "LDA & Aka7even – Poesie clandestine", "Leo Gassmann – Naturale", "Levante – Sei tu", "Luchè – Labirinto", "Malika Ayane – Animali notturni", "Mara Sattei – Le cose che non sai di me", "Maria Antonietta & Colombre – La felicità e basta", "Michele Bravi – Prima o poi", "Nayt – Prima che", "Patty Pravo – Opera", "Raf – Ora e per sempre", "Sal Da Vinci – Per sempre sì", "Samurai Jay – Ossessione", "Sayf – Tu mi piaci tanto", "Serena Brancale – Qui con me", "Tommaso Paradiso – I romantici", "Tredici Pietro – Uomo che cade" ];
+const artists=["Arisa","Bambole di Pezza","Chiello","Dargen","Ditonellapiaga","Eddie Brock",
+"Elettra","Nigiotti","Ermal","Fedez & Masini","Renga","Fulminacci","J-Ax","LDA","Leo","Levante",
+"Luchè","Malika","Mara","Maria A.","Michele","Nayt","Patty","Raf","Sal","Samurai","Sayf",
+"Serena","Paradiso","Tredici"];
 
 let votes=Array(artists.length).fill(5);
 let hasVoted=false;
@@ -87,6 +92,8 @@ const presenter=document.getElementById("presenter");
 const artistsDiv=document.getElementById("artists");
 const ranking=document.getElementById("ranking");
 const podium=document.getElementById("podium");
+const logo=document.getElementById("logo");
+
 const btnStart=document.getElementById("btnStart");
 const btnSubmit=document.getElementById("btnSubmit");
 const btnShow=document.getElementById("btnShow");
@@ -97,22 +104,17 @@ const btnReset=document.getElementById("btnReset");
 btnStart.onclick=()=>{
   if(!nicknameEl.value||!codeEl.value) return alert("Compila tutto");
   login.classList.add("hidden");
-  const logo=document.getElementById("logo");
   if(codeEl.value===PRESENTER_CODE){
     presenter.classList.remove("hidden");
     logo.className="logo-presenter";
-    document.body.classList.remove("no-bg");
+  }else{
+    if(hasVoted) alert("Hai già votato!");
+    else{
+      voteBox.classList.remove("hidden");
+      renderArtists();
+      logo.className="logo-normal";
+    }
   }
- else{
-  if(hasVoted) alert("Hai già votato!");
-  else{
-    voteBox.classList.remove("hidden");
-    renderArtists();
-    logo.className="logo-normal";
-    // NON togliamo più lo sfondo
-  }
-}
-
 };
 
 /* VOTI */
@@ -168,11 +170,12 @@ btnShow.onclick=async()=>{
     bar.textContent=`${pos}. ${t.name} – 0.00`;
     ranking.appendChild(bar);
     setTimeout(()=>{
+      bar.style.transition="width 1s ease-out";
       bar.style.width=(t.avg*10)+"%";
       bar.textContent=`${pos}. ${t.name} – ${t.avg.toFixed(2)}`;
-    },100);
+    }, i*500);
     i++;
-  },2000);
+  },500);
 };
 
 /* BEEP */
@@ -186,7 +189,7 @@ function playBeep(){
   setTimeout(()=>{osc.stop();ctx.close();},150);
 }
 
-/* PODIO CON CONTO ALLA ROVESCIA */
+/* PODIO CON CONTO ALLA ROVESCIA, BEEP E WOW */
 btnReveal.onclick=async()=>{
   await calcolaClassifica();
   podium.innerHTML="";
@@ -208,9 +211,15 @@ btnReveal.onclick=async()=>{
     }else{
       clearInterval(timer);
       podium.innerHTML="";
+
+      // Suono finale
+      const audio = new Audio("wow.mp3");
+      audio.play();
+
       top3.forEach((t,i)=>{
         const d=document.createElement("div");
         d.className="podium-box";
+        d.style.animation="glow 1.5s infinite";
         d.innerHTML=`
           <div style="font-size:60px">${["🥇","🥈","🥉"][i]}</div>
           <div>${t.name}</div>
