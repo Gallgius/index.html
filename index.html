@@ -9,32 +9,26 @@ body{
   font-family:Arial;
   color:white;
   padding:20px;
-  min-height:100vh;
-  background: url("sfondo.png") no-repeat center 25%;
-  background-size: cover;
+  background:#0b0b1e url("A_digital_illustration_music-themed_background_fea.png") no-repeat center center fixed;
+  background-size:cover;
 }
-.no-bg{background:#0b0b1e !important;background-image:none !important;}
 .box{max-width:800px;margin:auto;background:rgba(255,255,255,.05);padding:20px;border-radius:12px}
 .hidden{display:none}
-input,button{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:none;font-size:16px;box-sizing:border-box}
+input,button{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:none;font-size:16px}
 button{background:gold;color:black;font-weight:bold;cursor:pointer}
 .artist{margin:10px 0}
 .bar{background:linear-gradient(90deg,gold,orange);height:26px;border-radius:8px;margin:6px 0;line-height:26px;padding-left:10px;color:black;font-weight:bold;transition:width 1s}
-#podium{display:flex;gap:20px;justify-content:center;margin:20px 0;flex-wrap:wrap}
+#podium{display:flex;gap:20px;justify-content:center;margin:20px 0}
 .podium-box{width:30%;background:gold;color:black;padding:15px;border-radius:12px;text-align:center;font-weight:bold}
-.logo-normal{max-width:250px;width:80%;margin:20px auto;display:block}
-.logo-presenter{max-width:500px;width:90%;margin:40px auto;display:block;box-shadow:0 0 25px gold}
- #logo{
-  position: relative;
-  z-index: 10;
-}
- 
+#logo{display:block;margin:20px auto;max-width:300px;position:relative;z-index:10}
+.logo-presenter{max-width:500px}
 </style>
 </head>
 <body>
 
+<img id="logo" src="logo.png" class="logo-normal">
+
 <h1>🎤 Sanremo 2026</h1>
-<img id="logo" src="Logo_Festival_di_Sanremo_2026.svg.png" class="logo-normal" alt="Sanremo">
 
 <div class="box" id="login">
   <input id="nickname" placeholder="Nickname">
@@ -51,21 +45,19 @@ button{background:gold;color:black;font-weight:bold;cursor:pointer}
 <div class="box hidden" id="presenter">
   <button id="btnShow">MOSTRA CLASSIFICA</button>
   <button id="btnReveal">RIVELA PODIO</button>
-  <button id="btnReset">RESET VOTI</button>
   <div id="podium" class="hidden"></div>
   <div id="ranking"></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE",
   authDomain: "sanremo-2026.firebaseapp.com",
   projectId: "sanremo-2026",
-  storageBucket: "sanremo-2026.appspot.com",
+  storageBucket: "sanremo-2026.firebasestorage.app",
   messagingSenderId: "585160817288",
   appId: "1:585160817288:web:71c4552fc2cfd73c9dfd3d"
 };
@@ -80,9 +72,10 @@ const artists=["Arisa","Bambole di Pezza","Chiello","Dargen","Ditonellapiaga","E
 "Serena","Paradiso","Tredici"];
 
 let votes=Array(artists.length).fill(5);
-let hasVoted=false;
 let top3=[];
+let hasVoted=false;
 
+/* ELEMENTI */
 const nicknameEl=document.getElementById("nickname");
 const codeEl=document.getElementById("code");
 const login=document.getElementById("login");
@@ -91,33 +84,37 @@ const presenter=document.getElementById("presenter");
 const artistsDiv=document.getElementById("artists");
 const ranking=document.getElementById("ranking");
 const podium=document.getElementById("podium");
+const logo=document.getElementById("logo");
+
 const btnStart=document.getElementById("btnStart");
 const btnSubmit=document.getElementById("btnSubmit");
 const btnShow=document.getElementById("btnShow");
 const btnReveal=document.getElementById("btnReveal");
-const btnReset=document.getElementById("btnReset");
 
 /* LOGIN */
 btnStart.onclick=()=>{
-  if(!nicknameEl.value||!codeEl.value) return alert("Compila tutto");
+  const nickname=nicknameEl.value.trim();
+  const code=codeEl.value.trim();
+  if(!nickname||!code) return alert("Compila tutto");
+
   login.classList.add("hidden");
-  const logo=document.getElementById("logo");
-  if(codeEl.value===PRESENTER_CODE){
+
+  if(code===PRESENTER_CODE){
     presenter.classList.remove("hidden");
     logo.className="logo-presenter";
-    document.body.classList.remove("no-bg");
- else{
-  if(hasVoted) alert("Hai già votato!");
-  else{
-    voteBox.classList.remove("hidden");
-    renderArtists();
-    logo.className="logo-normal";
-    // niente no-bg, lo sfondo resta visibile
+  }else{
+    if(hasVoted){
+      alert("Hai già votato!");
+    }else{
+      voteBox.classList.remove("hidden");
+      renderArtists();
+      logo.className="logo-normal";
+      // NON togliamo più lo sfondo
+    }
   }
-}
 };
 
-/* VOTI */
+/* VOTAZIONE */
 function renderArtists(){
   artistsDiv.innerHTML="";
   artists.forEach((a,i)=>{
@@ -126,23 +123,23 @@ function renderArtists(){
     d.innerHTML=`${a}<input type="range" min="1" max="10" value="5"><span> 5</span>`;
     const r=d.querySelector("input");
     const s=d.querySelector("span");
-    r.oninput=()=>{s.textContent=" "+r.value;votes[i]=+r.value;}
+    r.oninput=()=>{s.textContent=" "+r.value; votes[i]=+r.value;}
     artistsDiv.appendChild(d);
   });
 }
 
 btnSubmit.onclick=async()=>{
-  if(hasVoted){alert("Hai già votato!");return;}
   await addDoc(collection(db,"votes"),{votes});
   hasVoted=true;
-  btnSubmit.disabled=true;
-  btnSubmit.textContent="Voto già inviato";
   alert("Voto inviato!");
-  voteBox.classList.add("hidden");
 };
 
 /* CLASSIFICA */
-async function calcolaClassifica(){
+btnShow.onclick=async()=>{
+  ranking.innerHTML="";
+  podium.innerHTML="";
+  podium.classList.add("hidden");
+
   const snap=await getDocs(collection(db,"votes"));
   let totals=artists.map((a,i)=>{
     let sum=0,count=0;
@@ -152,85 +149,35 @@ async function calcolaClassifica(){
     });
     return {name:a,avg:count?sum/count:0};
   }).sort((a,b)=>a.avg-b.avg);
-  top3=totals.slice(-3).reverse();
-  return totals.slice(0,-3);
-}
 
-btnShow.onclick=async()=>{
-  ranking.innerHTML="";
-  const others=await calcolaClassifica();
-  let i=0;
-  const timer=setInterval(()=>{
-    if(i>=others.length){clearInterval(timer);return;}
-    const t=others[i];
-    const pos=(others.length-i)+3;
+  top3=totals.slice(-3).reverse();
+  const rest=totals.slice(0,totals.length-3);
+
+  rest.forEach((t,i)=>{
+    const pos=rest.length-i+3;
     const bar=document.createElement("div");
     bar.className="bar";
-    bar.style.width="5%";
+    bar.style.width="0%";
     bar.textContent=`${pos}. ${t.name} – 0.00`;
     ranking.appendChild(bar);
     setTimeout(()=>{
-      bar.style.width=(t.avg*10)+"%";
+      bar.style.width=(t.avg*8)+"%";
       bar.textContent=`${pos}. ${t.name} – ${t.avg.toFixed(2)}`;
-    },100);
-    i++;
-  },2000);
+    },i*2000);
+  });
 };
 
-/* BEEP */
-function playBeep(){
-  const ctx=new (window.AudioContext||window.webkitAudioContext)();
-  const osc=ctx.createOscillator();
-  const gain=ctx.createGain();
-  osc.type="sine"; osc.frequency.value=800; gain.gain.value=0.2;
-  osc.connect(gain); gain.connect(ctx.destination);
-  osc.start();
-  setTimeout(()=>{osc.stop();ctx.close();},150);
-}
-
-/* PODIO CON CONTO ALLA ROVESCIA */
-btnReveal.onclick=async()=>{
-  await calcolaClassifica();
+/* PODIO */
+btnReveal.onclick=()=>{
   podium.innerHTML="";
+  top3.forEach((t,i)=>{
+    const d=document.createElement("div");
+    d.className="podium-box";
+    d.style.fontSize="26px";
+    d.innerHTML=`${["🥇","🥈","🥉"][i]}<br>${t.name}<br>${t.avg.toFixed(2)}`;
+    podium.appendChild(d);
+  });
   podium.classList.remove("hidden");
-
-  let count=10;
-  const counter=document.createElement("div");
-  counter.style.fontSize="80px";
-  counter.style.fontWeight="bold";
-  counter.style.textAlign="center";
-  counter.style.margin="30px 0";
-  podium.appendChild(counter);
-
-  const timer=setInterval(()=>{
-    if(count>0){
-      counter.textContent=count;
-      playBeep();
-      count--;
-    }else{
-      clearInterval(timer);
-      podium.innerHTML="";
-      top3.forEach((t,i)=>{
-        const d=document.createElement("div");
-        d.className="podium-box";
-        d.innerHTML=`
-          <div style="font-size:60px">${["🥇","🥈","🥉"][i]}</div>
-          <div>${t.name}</div>
-          <div>${t.avg.toFixed(2)}</div>
-        `;
-        podium.appendChild(d);
-      });
-    }
-  },1000);
-};
-
-btnReset.onclick=async()=>{
-  if(!confirm("Cancellare tutti i voti?")) return;
-  const snap=await getDocs(collection(db,"votes"));
-  for(const d of snap.docs){await deleteDoc(doc(db,"votes",d.id));}
-  ranking.innerHTML=""; podium.innerHTML="";
-  hasVoted=false; btnSubmit.disabled=false; btnSubmit.textContent="Invia voti";
-  alert("Voti cancellati!");
 };
 </script>
 </body>
