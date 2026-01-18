@@ -106,15 +106,15 @@ btnStart.onclick=()=>{
     presenter.classList.remove("hidden");
     logo.className="logo-presenter";
     document.body.classList.remove("no-bg");
-  }else{
-    if(hasVoted) alert("Hai già votato!");
-    else{
-      voteBox.classList.remove("hidden");
-      renderArtists();
-      logo.className="logo-normal";
-      document.body.classList.add("no-bg");
-    }
+ else{
+  if(hasVoted) alert("Hai già votato!");
+  else{
+    voteBox.classList.remove("hidden");
+    renderArtists();
+    logo.className="logo-normal";
+    // niente no-bg, lo sfondo resta visibile
   }
+}
 };
 
 /* VOTI */
