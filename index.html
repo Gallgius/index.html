@@ -95,25 +95,28 @@ button {
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const PRESENTER_CODE = "SANREMO26";
+  const VOTER_CODE = "VOTA26";
   const nickname = document.getElementById("nickname");
   const code = document.getElementById("code");
   const btnStart = document.getElementById("btnStart");
 
   btnStart.addEventListener("click", () => {
     const nick = nickname.value.trim();
-    const cod = code.value.trim();
+    const cod = code.value.trim().toUpperCase();
 
     if (!nick || !cod) {
       alert("Compila tutti i campi!");
       return;
     }
 
-    if (cod.toUpperCase() === PRESENTER_CODE) {
+    if (cod === PRESENTER_CODE) {
       alert(`Accesso come presentatore! Ciao ${nick}`);
-      // Qui puoi mostrare la schermata del presentatore
-    } else {
+      // Mostrare schermata presentatore
+    } else if (cod === VOTER_CODE) {
       alert(`Accesso come votante! Ciao ${nick}`);
-      // Qui puoi mostrare la schermata del votante
+      // Mostrare schermata votante
+    } else {
+      alert("Codice non valido!");
     }
   });
 });
