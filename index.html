@@ -21,7 +21,6 @@ html, body {
   overflow: hidden;
 }
 
-/* ===== CONTENITORE SCHERMO ===== */
 #screen {
   width: 100%;
   height: 100%;
@@ -33,7 +32,6 @@ html, body {
   transform-origin: top center;
 }
 
-/* ===== LOGHI ===== */
 #logos {
   display: flex;
   flex-direction: column;
@@ -47,7 +45,6 @@ html, body {
   height: auto;
 }
 
-/* ===== BOX LOGIN ===== */
 .box {
   width: 100%;
   max-width: 400px;
@@ -71,7 +68,6 @@ button {
   cursor: pointer;
 }
 
-/* ===== RIDIMENSIONAMENTO AUTOMATICO ===== */
 @media (min-height: 700px) {
   #screen {
     transform: scale(calc(100vh / 900));
@@ -97,23 +93,30 @@ button {
 </div>
 
 <script>
-const PRESENTER_CODE = "SANREMO26";
-const loginBox = document.getElementById("login");
-const nickname = document.getElementById("nickname");
-const code = document.getElementById("code");
-const btnStart = document.getElementById("btnStart");
+document.addEventListener("DOMContentLoaded", () => {
+  const PRESENTER_CODE = "SANREMO26";
+  const nickname = document.getElementById("nickname");
+  const code = document.getElementById("code");
+  const btnStart = document.getElementById("btnStart");
 
-btnStart.onclick = () => {
-  if (!nickname.value || !code.value) return alert("Compila tutti i campi!");
-  
-  if (code.value === PRESENTER_CODE) {
-    alert("Accesso come presentatore!");
-    // Qui puoi reindirizzare o mostrare box presentatore
-  } else {
-    alert("Accesso come votante!");
-    // Qui puoi reindirizzare o mostrare box votante
-  }
-};
+  btnStart.addEventListener("click", () => {
+    const nick = nickname.value.trim();
+    const cod = code.value.trim();
+
+    if (!nick || !cod) {
+      alert("Compila tutti i campi!");
+      return;
+    }
+
+    if (cod.toUpperCase() === PRESENTER_CODE) {
+      alert(`Accesso come presentatore! Ciao ${nick}`);
+      // Qui puoi mostrare la schermata del presentatore
+    } else {
+      alert(`Accesso come votante! Ciao ${nick}`);
+      // Qui puoi mostrare la schermata del votante
+    }
+  });
+});
 </script>
 </body>
 </html>
