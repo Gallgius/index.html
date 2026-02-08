@@ -33,10 +33,17 @@ body {
   flex-wrap: wrap; /* loghi vanno a capo su schermi stretti */
 }
 
+/* Tutti i loghi */
 #logos img {
   max-width: 250px;
-  width: 40vw; /* si ridimensionano automaticamente */
+  width: 40vw;
   height: auto;
+}
+
+/* Solo logo cinema (2° immagine) ingrandito il più possibile */
+#logos img:nth-child(2) { 
+  max-width: 400px; /* più grande del logo Sanremo */
+  width: 50vw;       /* occupa metà dello schermo su desktop */
 }
 
 /* ===== BOX LOGIN ===== */
@@ -75,6 +82,10 @@ button {
   #logos img {
     width: 60vw;
     max-width: 200px;
+  }
+  #logos img:nth-child(2) {
+    width: 80vw; /* cinema più grande anche su mobile */
+    max-width: 300px;
   }
   .box {
     padding: 15px;
