@@ -208,16 +208,27 @@ btnReveal.onclick=async()=>{
     }else{
       clearInterval(timer);
       podium.innerHTML="";
-      top3.forEach((t,i)=>{
-        const d=document.createElement("div");
-        d.className="podium-box";
-        d.innerHTML=`
-          <div style="font-size:60px">${["🥇","🥈","🥉"][i]}</div>
-          <div>${t.name}</div>
-          <div>${t.avg.toFixed(2)}</div>
-        `;
-        podium.appendChild(d);
-      });
+      let step = 0;
+
+const revealInterval = setInterval(() => {
+  if (step >= top3.length) {
+    clearInterval(revealInterval);
+    return;
+  }
+
+  const t = top3[step];
+  const d = document.createElement("div");
+  d.className = "podium-box";
+  d.innerHTML = `
+    <div style="font-size:60px">${["🥉","🥈","🥇"][step]}</div>
+    <div>${t.name}</div>
+    <div>${t.avg.toFixed(2)}</div>
+  `;
+
+  podium.appendChild(d);
+  playBeep(); // suono a ogni rivelazione
+  step++;
+}, 2000); // 2 secondi tra un posto e l’altro
     }
   },1000);
 };
