@@ -6,59 +6,86 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-  margin:0;
-  padding:20px;
-  font-family:Arial, sans-serif;
-  color:white;
-  min-height:100vh;
-  background:url("sfondo.png") no-repeat center 25%;
-  background-size:cover;
+/* ===== BODY ===== */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: url("sfondo.png") no-repeat center;
+  background-size: cover;
+  overflow: hidden; /* evita scroll */
 }
-
-.hidden{display:none}
 
 /* ===== LOGHI ===== */
-#logos{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:0px;
-  margin-bottom:25px;
-}
-#logos img{
-  max-width:520px;
-  width:90%;
+#logos {
+  display: flex;
+  flex-direction: row; /* loghi affiancati su desktop */
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap; /* loghi vanno a capo su schermi stretti */
 }
 
-/* ===== BOX ===== */
-.box{
-  max-width:900px;
-  margin:auto;
-  background:rgba(0,0,0,.45);
-  padding:25px;
-  border-radius:14px;
+#logos img {
+  max-width: 250px;
+  width: 40vw; /* si ridimensionano automaticamente */
+  height: auto;
 }
 
-input,button{
-  width:100%;
-  padding:12px;
-  margin:10px 0;
-  border-radius:8px;
-  border:none;
-  font-size:16px
-}
-button{
-  background:gold;
-  color:black;
-  font-weight:bold;
-  cursor:pointer
+/* ===== BOX LOGIN ===== */
+.box {
+  width: 90%;
+  max-width: 400px; /* dimensione massima */
+  min-width: 250px; /* dimensione minima per mobile */
+  background: rgba(0,0,0,0.45);
+  padding: 20px;
+  border-radius: 14px;
+  box-sizing: border-box;
 }
 
-/* ===== VOTO ===== */
+/* ===== INPUT E BUTTON ===== */
+input, button {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+}
+
+button {
+  background: gold;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 500px) {
+  #logos {
+    flex-direction: column; /* loghi uno sopra l'altro su mobile */
+  }
+  #logos img {
+    width: 60vw;
+    max-width: 200px;
+  }
+  .box {
+    padding: 15px;
+  }
+}
+
+/* ===== ALTRI ELEMENTI ===== */
+.hidden{display:none}
+
 .artist{margin:10px 0}
 
-/* ===== CLASSIFICA ===== */
 .bar{
   background:linear-gradient(90deg,gold,orange);
   height:28px;
@@ -72,7 +99,6 @@ button{
   transition:width 1s;
 }
 
-/* ===== PODIO ===== */
 #podium{
   display:flex;
   justify-content:center;
@@ -90,7 +116,6 @@ button{
   font-size:18px;
 }
 
-/* ===== REGIA ===== */
 .regia input,
 .regia button,
 .regia h1{
@@ -148,7 +173,7 @@ const db=getFirestore(app);
 
 /* ===== CONFIG ===== */
 const PRESENTER_CODE="SANREMO26";
-const artists=[/* lista 30 cantanti */ 
+const artists=[
 "Arisa","Bambole di Pezza","Chiello","Dargen D'Amico","Ditonellapiaga",
 "Eddie Brock","Elettra Lamborghini","Enrico Nigiotti","Ermal Meta","Fedez & Masini",
 "Francesco Renga","Fulminacci","J-Ax","LDA & Aka7even","Leo Gassmann",
@@ -281,5 +306,4 @@ btnReset.onclick=async()=>{
 </script>
 </body>
 </html>
-
 
