@@ -157,17 +157,35 @@ const db=getFirestore(app);
 
 /* ===== CONFIG ===== */
 const PRESENTER_CODE="SANREMO26";
-const artists=[
-"Arisa","Bambole di Pezza","Chiello","Dargen D'Amico","Ditonellapiaga",
+const artists=[ "Arisa","Bambole di Pezza","Chiello","Dargen D'Amico","Ditonellapiaga",
 "Eddie Brock","Elettra Lamborghini","Enrico Nigiotti","Ermal Meta","Fedez & Masini",
 "Francesco Renga","Fulminacci","J-Ax","LDA & Aka7even","Leo Gassmann",
 "Levante","Luchè","Malika Ayane","Mara Sattei","Maria Antonietta",
 "Michele Bravi","Nayt","Patty Pravo","Raf","Sal Da Vinci",
-"Samurai Jay","Sayf","Serena Brancale","Tommaso Paradiso","Tredici Pietro"
-];
+"Samurai Jay","Sayf","Serena Brancale","Tommaso Paradiso","Tredici Pietro" ];
 
 let votes=Array(artists.length).fill(5);
 let top3=[];
+
+/* ===== AUDIO ===== */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function beep(freq=800, dur=0.15){
+  const o=audioCtx.createOscillator();
+  o.frequency.value=freq;
+  o.connect(audioCtx.destination);
+  o.start();
+  o.stop(audioCtx.currentTime+dur);
+}
+
+function drumRoll(){
+  let i=0;
+  const roll=setInterval(()=>{
+    beep(200+i*30,0.08);
+    i++;
+    if(i>15) clearInterval(roll);
+  },120);
+}
 
 /* ===== LOGIN ===== */
 btnStart.onclick=()=>{
@@ -207,50 +225,48 @@ async function calcola(){
   return res.slice(0,-3);
 }
 
-/* ===== BEEP ===== */
-function beep(){
-  const ctx=new AudioContext();
-  const o=ctx.createOscillator();
-  o.frequency.value=800;
-  o.connect(ctx.destination);
-  o.start();
-  setTimeout(()=>{o.stop();ctx.close()},150);
-}
-
-/* ===== PODIO CON COUNTDOWN ===== */
+/* ===== PODIO CON DRUM ROLL + COUNTDOWN ===== */
 btnReveal.onclick=()=>{
   document.documentElement.requestFullscreen?.();
   document.body.classList.add("regia");
 
-  let n=10;
-  countdown.textContent=n;
-  countdown.classList.remove("hidden");
+  drumRoll();
 
-  const timer=setInterval(async()=>{
-    beep();
-    countdown.textContent=n--;
-    if(n<0){
-      clearInterval(timer);
-      countdown.classList.add("hidden");
-      showPodium();
-    }
-  },1000);
+  setTimeout(()=>{
+    let n=10;
+    countdown.textContent=n;
+    countdown.classList.remove("hidden");
+
+    const timer=setInterval(()=>{
+      beep();
+      countdown.textContent=n;
+      n--;
+      if(n<0){
+        clearInterval(timer);
+        countdown.classList.add("hidden");
+        revealPodium();
+      }
+    },1000);
+  },3000);
 };
 
-async function showPodium(){
+async function revealPodium(){
   await calcola();
   podium.innerHTML="";
   podium.classList.remove("hidden");
+
   const order=[2,1,0];
   let i=0;
-  const show=()=>{
+
+  function show(){
     if(i>=3)return;
     const t=top3[order[i]];
     podium.innerHTML+=`<div class="podium-box">
       ${["🥇","🥈","🥉"][order[i]]}<br>${t.name}<br>${t.avg.toFixed(2)}
     </div>`;
-    i++; setTimeout(show,2000);
-  };
+    i++;
+    setTimeout(show,2000);
+  }
   show();
 }
 </script>
