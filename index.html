@@ -6,7 +6,6 @@
 <title>Sanremo 2026</title>
 
 <style>
-/* BASE */
 html,body{
   margin:0;
   padding:0;
@@ -17,17 +16,6 @@ html,body{
 }
 .hidden{display:none}
 
-/* LOGIN FIT SCREEN */
-#login{
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  gap:15px;
-}
-
-/* BOX */
 .box{
   max-width:800px;
   width:95%;
@@ -37,7 +25,6 @@ html,body{
   border-radius:12px;
 }
 
-/* INPUT */
 input,button{
   width:100%;
   padding:14px;
@@ -58,17 +45,23 @@ button{
   flex-direction:column;
   align-items:center;
   gap:15px;
-  margin-bottom:20px;
+  margin:20px 0;
 }
 .logos img{
   max-width:260px;
   width:80%;
 }
 
-/* ARTISTI */
-.artist{margin:10px 0}
+/* LOGIN FULL */
+#login{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:15px;
+}
 
-/* BAR */
+/* CLASSIFICA */
 .bar{
   background:linear-gradient(90deg,gold,orange);
   height:26px;
@@ -85,8 +78,8 @@ button{
 /* PODIO */
 #podium{
   display:flex;
-  gap:20px;
   justify-content:center;
+  gap:20px;
   margin-top:30px;
 }
 .podium-box{
@@ -106,11 +99,19 @@ button{
 
 /* ORO */
 .gold{
-  animation:flash .6s alternate 6;
+  animation:flash .5s alternate 6;
 }
 @keyframes flash{
   from{box-shadow:0 0 10px gold}
   to{box-shadow:0 0 40px gold}
+}
+
+/* COUNTDOWN */
+#countdown{
+  font-size:100px;
+  font-weight:bold;
+  text-align:center;
+  margin:40px 0;
 }
 </style>
 </head>
@@ -138,6 +139,7 @@ button{
   <button id="btnShow">MOSTRA CLASSIFICA</button>
   <button id="btnReveal">RIVELA PODIO</button>
   <div id="ranking"></div>
+  <div id="countdown" class="hidden"></div>
   <div id="podium" class="hidden"></div>
 </div>
 
@@ -156,8 +158,7 @@ const db=getFirestore(app);
 const PRESENTER_CODE="SANREMO26";
 
 /* ARTISTI */
-const artists=[/* lista completa */ 
-"Arisa – Magica favola","Bambole di Pezza – Resta con me","Chiello – Ti penso sempre",
+const artists=[ "Arisa – Magica favola","Bambole di Pezza – Resta con me","Chiello – Ti penso sempre",
 "Dargen D'Amico – AI AI","Ditonellapiaga – Che fastidio!","Eddie Brock – Avvoltoi",
 "Elettra Lamborghini – Voilà","Enrico Nigiotti – Ogni volta che non so volare",
 "Ermal Meta – Stella stellina","Fedez & Marco Masini – Male necessario",
@@ -167,8 +168,7 @@ const artists=[/* lista completa */
 "Maria Antonietta & Colombre – La felicità e basta","Michele Bravi – Prima o poi",
 "Nayt – Prima che","Patty Pravo – Opera","Raf – Ora e per sempre",
 "Sal Da Vinci – Per sempre sì","Samurai Jay – Ossessione","Sayf – Tu mi piaci tanto",
-"Serena Brancale – Qui con me","Tommaso Paradiso – I romantici","Tredici Pietro – Uomo che cade"
-];
+"Serena Brancale – Qui con me","Tommaso Paradiso – I romantici","Tredici Pietro – Uomo che cade" ];
 
 let votes=Array(artists.length).fill(5);
 let top3=[];
@@ -185,7 +185,6 @@ function render(){
   artistsDiv.innerHTML="";
   artists.forEach((a,i)=>{
     const d=document.createElement("div");
-    d.className="artist";
     d.innerHTML=`${a}<input type="range" min="1" max="10" value="5"><span> 5</span>`;
     const r=d.querySelector("input"),s=d.querySelector("span");
     r.oninput=()=>{s.textContent=" "+r.value;votes[i]=+r.value;}
@@ -198,21 +197,22 @@ btnSubmit.onclick=async()=>{
   alert("Voto inviato");
 };
 
-/* CLASSIFICA */
+/* CALCOLO */
 async function calcola(){
   const snap=await getDocs(collection(db,"votes"));
   let t=artists.map((a,i)=>{
     let s=0,c=0;
-    snap.forEach(d=>{const v=d.data().votes?.[i]; if(v){s+=v;c++;}});
+    snap.forEach(d=>{const v=d.data().votes?.[i];if(v){s+=v;c++;}});
     return {name:a,avg:c?s/c:0};
   }).sort((a,b)=>a.avg-b.avg);
   top3=t.slice(-3).reverse();
   return t.slice(0,-3);
 }
 
+/* CLASSIFICA */
 btnShow.onclick=async()=>{
   ranking.innerHTML="";
-  ranking.style.display="block";
+  ranking.classList.remove("hidden");
   const o=await calcola();
   let i=0;
   const timer=setInterval(()=>{
@@ -227,27 +227,57 @@ btnShow.onclick=async()=>{
   },1500);
 };
 
+/* BEEP */
+function beep(){
+  const ctx=new AudioContext();
+  const o=ctx.createOscillator();
+  o.frequency.value=800;
+  o.connect(ctx.destination);
+  o.start();
+  setTimeout(()=>{o.stop();ctx.close()},120);
+}
+
 /* PODIO */
 btnReveal.onclick=async()=>{
   ranking.innerHTML="";
-  ranking.style.display="none";
+  ranking.classList.add("hidden");
+
   document.documentElement.requestFullscreen?.();
-  podium.classList.remove("hidden");
+
+  const countdown=document.getElementById("countdown");
+  countdown.classList.remove("hidden");
+  let n=10;
+
+  const timer=setInterval(()=>{
+    countdown.textContent=n;
+    beep();
+    n--;
+    if(n<0){
+      clearInterval(timer);
+      countdown.classList.add("hidden");
+      showPodio();
+    }
+  },1000);
+};
+
+function showPodio(){
   podium.innerHTML="";
+  podium.classList.remove("hidden");
   const order=[2,1,0];
   let i=0;
-  function show(){
+  function next(){
     if(i>=3) return;
     const t=top3[order[i]];
     const d=document.createElement("div");
     d.className="podium-box gold";
     d.innerHTML=`<div style="font-size:60px">${["🥇","🥈","🥉"][order[i]]}</div>
-                 <div>${t.name}</div><div>${t.avg.toFixed(2)}</div>`;
+                 <div>${t.name}</div>
+                 <div>${t.avg.toFixed(2)}</div>`;
     podium.appendChild(d);
-    i++; setTimeout(show,2000);
+    i++; setTimeout(next,2000);
   }
-  show();
-};
+  next();
+}
 </script>
 </body>
 </html>
