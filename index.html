@@ -23,8 +23,8 @@ body{
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:-100px;
-  margin-bottom:-50px;
+  gap:0;
+  margin-bottom:0;
 }
 #logos img{
   max-width:520px;
@@ -54,9 +54,6 @@ button{
   font-weight:bold;
   cursor:pointer
 }
-
-/* ===== VOTO ===== */
-.artist{margin:10px 0}
 
 /* ===== CLASSIFICA ===== */
 .bar{
@@ -90,6 +87,20 @@ button{
   font-size:18px;
 }
 
+/* ===== COUNTDOWN ===== */
+#countdown{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.9);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:140px;
+  font-weight:bold;
+  color:gold;
+  z-index:9999;
+}
+
 /* ===== REGIA ===== */
 .regia input,
 .regia button,
@@ -105,8 +116,8 @@ button{
 <body>
 
 <div id="logos">
-  <img src="logo-sanremo-2026.png" alt="Sanremo 2026">
-  <img src="logo-cinema.png" alt="Cinema">
+  <img src="logo-sanremo-2026.png">
+  <img src="logo-cinema.png">
 </div>
 
 <div class="box" id="login">
@@ -129,26 +140,24 @@ button{
   <div id="podium" class="hidden"></div>
 </div>
 
+<div id="countdown" class="hidden">10</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ===== FIREBASE ===== */
-const firebaseConfig={
+const app=initializeApp({
   apiKey:"AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE",
   authDomain:"sanremo-2026.firebaseapp.com",
-  projectId:"sanremo-2026",
-  storageBucket:"sanremo-2026.appspot.com",
-  messagingSenderId:"585160817288",
-  appId:"1:585160817288:web:71c4552fc2cfd73c9dfd3d"
-};
-const app=initializeApp(firebaseConfig);
+  projectId:"sanremo-2026"
+});
 const db=getFirestore(app);
 
 /* ===== CONFIG ===== */
 const PRESENTER_CODE="SANREMO26";
-const artists=[/* lista 30 cantanti */ 
+const artists=[
 "Arisa","Bambole di Pezza","Chiello","Dargen D'Amico","Ditonellapiaga",
 "Eddie Brock","Elettra Lamborghini","Enrico Nigiotti","Ermal Meta","Fedez & Masini",
 "Francesco Renga","Fulminacci","J-Ax","LDA & Aka7even","Leo Gassmann",
@@ -160,44 +169,30 @@ const artists=[/* lista 30 cantanti */
 let votes=Array(artists.length).fill(5);
 let top3=[];
 
-/* ===== ELEMENTI ===== */
-const login=document.getElementById("login");
-const voteBox=document.getElementById("vote");
-const presenter=document.getElementById("presenter");
-const artistsDiv=document.getElementById("artists");
-const ranking=document.getElementById("ranking");
-const podium=document.getElementById("podium");
-
 /* ===== LOGIN ===== */
 btnStart.onclick=()=>{
   if(!nickname.value||!code.value)return alert("Compila tutto");
   login.classList.add("hidden");
-  if(code.value===PRESENTER_CODE){
-    presenter.classList.remove("hidden");
-  }else{
-    voteBox.classList.remove("hidden");
-    renderArtists();
-  }
+  code.value===PRESENTER_CODE
+    ? presenter.classList.remove("hidden")
+    : (vote.classList.remove("hidden"),renderArtists());
 };
 
 /* ===== VOTO ===== */
 function renderArtists(){
   artistsDiv.innerHTML="";
   artists.forEach((a,i)=>{
-    const d=document.createElement("div");
-    d.className="artist";
-    d.innerHTML=`${a}<input type="range" min="1" max="10" value="1"><span> 1</span>`;
-    const r=d.querySelector("input");
-    const s=d.querySelector("span");
-    r.oninput=()=>{s.textContent=" "+r.value;votes[i]=+r.value};
-    artistsDiv.appendChild(d);
+    artistsDiv.innerHTML+=`${a}
+    <input type="range" min="1" max="10" value="1"
+    oninput="this.nextSibling.textContent=this.value;votes[${i}]=+this.value">
+    <span>1</span><br>`;
   });
 }
 
 btnSubmit.onclick=async()=>{
   await addDoc(collection(db,"votes"),{votes});
   alert("Voto inviato!");
-  voteBox.classList.add("hidden");
+  vote.classList.add("hidden");
 };
 
 /* ===== CALCOLO ===== */
@@ -205,79 +200,59 @@ async function calcola(){
   const snap=await getDocs(collection(db,"votes"));
   let res=artists.map((a,i)=>{
     let s=0,c=0;
-    snap.forEach(d=>{if(d.data().votes?.[i]!=null){s+=d.data().votes[i];c++}});
+    snap.forEach(d=>{s+=d.data().votes?.[i]||0;c+=d.data().votes?.[i]!=null});
     return {name:a,avg:c?s/c:0};
   }).sort((a,b)=>a.avg-b.avg);
   top3=res.slice(-3).reverse();
   return res.slice(0,-3);
 }
 
-/* ===== CLASSIFICA PROGRESSIVA ===== */
-btnShow.onclick=async()=>{
-  ranking.innerHTML="";
-  const others=await calcola();
-  let i=0;
+/* ===== BEEP ===== */
+function beep(){
+  const ctx=new AudioContext();
+  const o=ctx.createOscillator();
+  o.frequency.value=800;
+  o.connect(ctx.destination);
+  o.start();
+  setTimeout(()=>{o.stop();ctx.close()},150);
+}
 
-  function reveal(){
-    if(i>=others.length)return;
-    const t=others[i];
-    const bar=document.createElement("div");
-    bar.className="bar";
-    bar.textContent=`${others.length-i+3}. ${t.name} – ${t.avg.toFixed(2)}`;
-    ranking.appendChild(bar);
-    requestAnimationFrame(()=>bar.style.width=(t.avg*10)+"%");
-    i++;
-    setTimeout(reveal,500);
-  }
-  reveal();
-};
-
-/* ===== PODIO ===== */
-btnReveal.onclick=async()=>{
+/* ===== PODIO CON COUNTDOWN ===== */
+btnReveal.onclick=()=>{
   document.documentElement.requestFullscreen?.();
   document.body.classList.add("regia");
 
+  let n=10;
+  countdown.textContent=n;
+  countdown.classList.remove("hidden");
+
+  const timer=setInterval(async()=>{
+    beep();
+    countdown.textContent=n--;
+    if(n<0){
+      clearInterval(timer);
+      countdown.classList.add("hidden");
+      showPodium();
+    }
+  },1000);
+};
+
+async function showPodium(){
   await calcola();
   podium.innerHTML="";
   podium.classList.remove("hidden");
-
   const order=[2,1,0];
   let i=0;
-
-  function show(){
+  const show=()=>{
     if(i>=3)return;
     const t=top3[order[i]];
-    const d=document.createElement("div");
-    d.className="podium-box";
-    d.innerHTML=`${["🥇","🥈","🥉"][order[i]]}<br>${t.name}<br>${t.avg.toFixed(2)}`;
-    podium.appendChild(d);
-    gold();
-    i++;
-    setTimeout(show,2000);
-  }
+    podium.innerHTML+=`<div class="podium-box">
+      ${["🥇","🥈","🥉"][order[i]]}<br>${t.name}<br>${t.avg.toFixed(2)}
+    </div>`;
+    i++; setTimeout(show,2000);
+  };
   show();
-};
-
-/* ===== EFFETTO ORO ===== */
-function gold(){
-  for(let i=0;i<50;i++){
-    const p=document.createElement("div");
-    p.style=`position:fixed;width:8px;height:8px;background:gold;border-radius:50%;top:-10px;left:${Math.random()*100}vw`;
-    document.body.appendChild(p);
-    p.animate([{transform:"translateY(0)"},{transform:"translateY(100vh)",opacity:0}],{duration:2000});
-    setTimeout(()=>p.remove(),2200);
-  }
 }
-
-/* ===== RESET ===== */
-btnReset.onclick=async()=>{
-  if(!confirm("Reset totale?"))return;
-  const snap=await getDocs(collection(db,"votes"));
-  for(const d of snap.docs)await deleteDoc(doc(db,"votes",d.id));
-  ranking.innerHTML="";
-  podium.innerHTML="";
-  alert("Reset fatto");
-};
 </script>
 </body>
 </html>
