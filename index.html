@@ -151,7 +151,9 @@ const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 
 /* ===== CONFIG ===== */
-const PRESENTER_CODE="SANREMO26";
+const PRESENTER_CODE = "SANREMO26";
+const VOTER_CODE = "VOTO26";
+
 const artists=[/* lista 30 cantanti */ 
 "Arisa","Bambole di Pezza","Chiello","Dargen D'Amico","Ditonellapiaga",
 "Eddie Brock","Elettra Lamborghini","Enrico Nigiotti","Ermal Meta","Fedez & Masini",
@@ -173,14 +175,25 @@ const ranking=document.getElementById("ranking");
 const podium=document.getElementById("podium");
 
 /* ===== LOGIN ===== */
-btnStart.onclick=()=>{
-  if(!nickname.value||!code.value)return alert("Compila tutto");
-  login.classList.add("hidden");
-  if(code.value===PRESENTER_CODE){
+btnStart.onclick = () => {
+  if (!nickname.value || !code.value) {
+    alert("Compila tutto");
+    return;
+  }
+
+  if (code.value === PRESENTER_CODE) {
+    // MODALITÀ PRESENTATORE
+    login.classList.add("hidden");
     presenter.classList.remove("hidden");
-  }else{
+
+  } else if (code.value === VOTER_CODE) {
+    // MODALITÀ VOTANTE
+    login.classList.add("hidden");
     voteBox.classList.remove("hidden");
     renderArtists();
+
+  } else {
+    alert("Codice non valido");
   }
 };
 
