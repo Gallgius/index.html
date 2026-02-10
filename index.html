@@ -272,7 +272,7 @@ async function calcola(){
   let res=artists.map((a,i)=>{
     let s=0,c=0;
     snap.forEach(d=>{if(d.data().votes?.[i]!=null){s+=d.data().votes[i];c++}});
-    return {name:a,avg:c?s/c:0};
+    return { name: a.name, song: a.song, avg: c ? s / c : 0 };
   }).sort((a,b)=>a.avg-b.avg);
   top3=res.slice(-3).reverse();
   return res.slice(0,-3);
