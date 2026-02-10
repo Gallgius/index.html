@@ -214,15 +214,27 @@ btnStart.onclick = () => {
     return;
   }
 
+  // nascondo il login
+  login.classList.add("hidden");
+
   if (code.value === PRESENTER_CODE) {
     // MODALITÀ PRESENTATORE
-    login.classList.add("hidden");
     presenter.classList.remove("hidden");
+    return;
+  }
 
-  } else if (code.value === VOTER_CODE) {
+  if (code.value === VOTER_CODE) {
     // MODALITÀ VOTANTE
-    login.classList.add("hidden");
     voteBox.classList.remove("hidden");
+    renderArtists();
+    return;
+  }
+
+  // codice errato
+  alert("Codice non valido");
+  login.classList.remove("hidden");
+};
+
     function renderArtists(){
   artistsDiv.innerHTML = "";
 
@@ -381,9 +393,7 @@ btnReset.onclick=async()=>{
   podium.innerHTML="";
   alert("Reset fatto");
 };
-  console.log("ARTISTS:", artists);
-renderArtists();
-
+  
 </script>
 </body>
 </html>
