@@ -23,7 +23,7 @@ body{
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:-95px;
+  gap:15px;
   margin-bottom:25px;
 }
 #logos img{
@@ -90,6 +90,20 @@ button{
   font-size:18px;
 }
 
+/* ===== COUNTDOWN ===== */
+#countdown{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.85);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:120px;
+  font-weight:bold;
+  color:gold;
+  z-index:9999;
+}
+
 /* ===== REGIA ===== */
 .regia input,
 .regia button,
@@ -129,6 +143,8 @@ button{
   <div id="podium" class="hidden"></div>
 </div>
 
+<div id="countdown" class="hidden"></div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc }
@@ -148,7 +164,7 @@ const db=getFirestore(app);
 
 /* ===== CONFIG ===== */
 const PRESENTER_CODE="SANREMO26";
-const artists=[/* lista 30 cantanti */ 
+const artists=[
 "Arisa","Bambole di Pezza","Chiello","Dargen D'Amico","Ditonellapiaga",
 "Eddie Brock","Elettra Lamborghini","Enrico Nigiotti","Ermal Meta","Fedez & Masini",
 "Francesco Renga","Fulminacci","J-Ax","LDA & Aka7even","Leo Gassmann",
@@ -167,6 +183,7 @@ const presenter=document.getElementById("presenter");
 const artistsDiv=document.getElementById("artists");
 const ranking=document.getElementById("ranking");
 const podium=document.getElementById("podium");
+const countdown=document.getElementById("countdown");
 
 /* ===== LOGIN ===== */
 btnStart.onclick=()=>{
@@ -212,12 +229,11 @@ async function calcola(){
   return res.slice(0,-3);
 }
 
-/* ===== CLASSIFICA PROGRESSIVA ===== */
+/* ===== CLASSIFICA ===== */
 btnShow.onclick=async()=>{
   ranking.innerHTML="";
   const others=await calcola();
   let i=0;
-
   function reveal(){
     if(i>=others.length)return;
     const t=others[i];
@@ -232,18 +248,33 @@ btnShow.onclick=async()=>{
   reveal();
 };
 
+/* ===== COUNTDOWN ===== */
+function startCountdown(onEnd){
+  let n=5;
+  countdown.textContent=n;
+  countdown.classList.remove("hidden");
+  const timer=setInterval(()=>{
+    n--;
+    if(n===0){
+      clearInterval(timer);
+      countdown.classList.add("hidden");
+      onEnd();
+    }else{
+      countdown.textContent=n;
+    }
+  },1000);
+}
+
 /* ===== PODIO ===== */
-btnReveal.onclick=async()=>{
+async function revealPodium(){
   document.documentElement.requestFullscreen?.();
   document.body.classList.add("regia");
-
   await calcola();
   podium.innerHTML="";
   podium.classList.remove("hidden");
 
   const order=[2,1,0];
   let i=0;
-
   function show(){
     if(i>=3)return;
     const t=top3[order[i]];
@@ -256,7 +287,9 @@ btnReveal.onclick=async()=>{
     setTimeout(show,2000);
   }
   show();
-};
+}
+
+btnReveal.onclick=()=>startCountdown(revealPodium);
 
 /* ===== EFFETTO ORO ===== */
 function gold(){
@@ -281,3 +314,4 @@ btnReset.onclick=async()=>{
 </script>
 </body>
 </html>
+
