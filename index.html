@@ -218,17 +218,15 @@ btnStart.onclick = () => {
 
   if (code.value === PRESENTER_CODE) {
     presenter.classList.remove("hidden");
-    return;
-  }
-
-  if (code.value === VOTER_CODE) {
+  } else if (code.value === VOTER_CODE) {
     voteBox.classList.remove("hidden");
     renderArtists();
-    return;
+  } else {
+    alert("Codice non valido");
+    login.classList.remove("hidden");
   }
+};
 
-  alert("Codice non valido");
-  login.classList.remove("hidden");
 
     function renderArtists(){
   artistsDiv.innerHTML = "";
