@@ -154,14 +154,39 @@ const db=getFirestore(app);
 const PRESENTER_CODE = "SANREMO26";
 const VOTER_CODE = "VOTO26";
 
-const artists=[/* lista 30 cantanti */ 
-"Arisa","Bambole di Pezza","Chiello","Dargen D'Amico","Ditonellapiaga",
-"Eddie Brock","Elettra Lamborghini","Enrico Nigiotti","Ermal Meta","Fedez & Masini",
-"Francesco Renga","Fulminacci","J-Ax","LDA & Aka7even","Leo Gassmann",
-"Levante","Luchè","Malika Ayane","Mara Sattei","Maria Antonietta",
-"Michele Bravi","Nayt","Patty Pravo","Raf","Sal Da Vinci",
-"Samurai Jay","Sayf","Serena Brancale","Tommaso Paradiso","Tredici Pietro"
+const artists = [
+  { name: "Arisa", song: "Titolo canzone" },
+  { name: "Bambole di Pezza", song: "Titolo canzone" },
+  { name: "Chiello", song: "Titolo canzone" },
+  { name: "Dargen D'Amico", song: "Titolo canzone" },
+  { name: "Ditonellapiaga", song: "Titolo canzone" },
+  { name: "Eddie Brock", song: "Titolo canzone" },
+  { name: "Elettra Lamborghini", song: "Titolo canzone" },
+  { name: "Enrico Nigiotti", song: "Titolo canzone" },
+  { name: "Ermal Meta", song: "Titolo canzone" },
+  { name: "Fedez & Masini", song: "Titolo canzone" },
+  { name: "Francesco Renga", song: "Titolo canzone" },
+  { name: "Fulminacci", song: "Titolo canzone" },
+  { name: "J-Ax", song: "Titolo canzone" },
+  { name: "LDA & Aka7even", song: "Titolo canzone" },
+  { name: "Leo Gassmann", song: "Titolo canzone" },
+  { name: "Levante", song: "Titolo canzone" },
+  { name: "Luchè", song: "Titolo canzone" },
+  { name: "Malika Ayane", song: "Titolo canzone" },
+  { name: "Mara Sattei", song: "Titolo canzone" },
+  { name: "Maria Antonietta", song: "Titolo canzone" },
+  { name: "Michele Bravi", song: "Titolo canzone" },
+  { name: "Nayt", song: "Titolo canzone" },
+  { name: "Patty Pravo", song: "Titolo canzone" },
+  { name: "Raf", song: "Titolo canzone" },
+  { name: "Sal Da Vinci", song: "Titolo canzone" },
+  { name: "Samurai Jay", song: "Titolo canzone" },
+  { name: "Sayf", song: "Titolo canzone" },
+  { name: "Serena Brancale", song: "Titolo canzone" },
+  { name: "Tommaso Paradiso", song: "Titolo canzone" },
+  { name: "Tredici Pietro", song: "Titolo canzone" }
 ];
+
 
 let votes=Array(artists.length).fill(5);
 let top3=[];
