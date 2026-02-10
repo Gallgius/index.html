@@ -227,8 +227,8 @@ btnStart.onclick = () => {
   }
 };
 
-
-    function renderArtists(){
+/* ===== VOTO ===== */
+function renderArtists(){
   artistsDiv.innerHTML = "";
 
   artists.forEach((a, i) => {
@@ -238,8 +238,8 @@ btnStart.onclick = () => {
     d.innerHTML = `
       <strong>${a.name}</strong><br>
       <em style="opacity:.8">${a.song}</em>
-      <input type="range" min="1" max="10" value="1">
-      <span> 1</span>
+      <input type="range" min="1" max="10" value="5">
+      <span> 5</span>
     `;
 
     const r = d.querySelector("input");
