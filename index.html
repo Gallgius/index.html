@@ -2,125 +2,111 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sanremo 2026</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-html,body{
+body{
   margin:0;
-  padding:0;
-  height:100%;
-  font-family:Arial;
-  background:#000;
+  padding:20px;
+  font-family:Arial, sans-serif;
   color:white;
+  min-height:100vh;
+  background:url("sfondo.png") no-repeat center 25%;
+  background-size:cover;
 }
+
 .hidden{display:none}
 
+/* ===== LOGHI ===== */
+#logos{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:15px;
+  margin-bottom:25px;
+}
+#logos img{
+  max-width:520px;
+  width:90%;
+}
+
+/* ===== BOX ===== */
 .box{
-  max-width:800px;
-  width:95%;
+  max-width:900px;
   margin:auto;
-  background:rgba(255,255,255,.06);
-  padding:20px;
-  border-radius:12px;
+  background:rgba(0,0,0,.45);
+  padding:25px;
+  border-radius:14px;
 }
 
 input,button{
   width:100%;
-  padding:14px;
+  padding:12px;
+  margin:10px 0;
   border-radius:8px;
   border:none;
-  font-size:16px;
+  font-size:16px
 }
 button{
   background:gold;
   color:black;
   font-weight:bold;
-  cursor:pointer;
+  cursor:pointer
 }
 
-/* LOGHI */
-.logos{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:15px;
-  margin:20px 0;
-}
-.logos img{
-  max-width:260px;
-  width:80%;
-}
+/* ===== VOTO ===== */
+.artist{margin:10px 0}
 
-/* LOGIN FULL */
-#login{
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  gap:15px;
-}
-
-/* CLASSIFICA */
+/* ===== CLASSIFICA ===== */
 .bar{
   background:linear-gradient(90deg,gold,orange);
-  height:26px;
-  border-radius:8px;
-  margin:6px 0;
+  height:28px;
+  border-radius:10px;
+  margin:8px 0;
   padding-left:10px;
-  line-height:26px;
+  line-height:28px;
   color:black;
   font-weight:bold;
-  width:5%;
+  width:0;
   transition:width 1s;
 }
 
-/* PODIO */
+/* ===== PODIO ===== */
 #podium{
   display:flex;
   justify-content:center;
   gap:20px;
-  margin-top:30px;
+  margin:30px 0;
 }
 .podium-box{
-  width:30%;
   background:gold;
   color:black;
   padding:20px;
-  border-radius:12px;
+  border-radius:16px;
   text-align:center;
+  width:30%;
   font-weight:bold;
-  animation:drop .6s ease;
-}
-@keyframes drop{
-  from{transform:translateY(-40px);opacity:0}
-  to{transform:none;opacity:1}
+  font-size:18px;
 }
 
-/* ORO */
-.gold{
-  animation:flash .5s alternate 6;
+/* ===== REGIA ===== */
+.regia input,
+.regia button,
+.regia h1{
+  display:none!important;
 }
-@keyframes flash{
-  from{box-shadow:0 0 10px gold}
-  to{box-shadow:0 0 40px gold}
-}
-
-/* COUNTDOWN */
-#countdown{
-  font-size:100px;
-  font-weight:bold;
-  text-align:center;
-  margin:40px 0;
+.regia .box{
+  background:none;
 }
 </style>
 </head>
 
 <body>
 
-<div class="logos">
-  <img src="Logo_Festival_di_Sanremo_2026.svg.png">
-  <img src="logo cinema.png">
+<div id="logos">
+  <img src="logo-sanremo-2026.png" alt="Sanremo 2026">
+  <img src="logo-cinema.png" alt="Cinema">
 </div>
 
 <div class="box" id="login">
@@ -130,7 +116,7 @@ button{
 </div>
 
 <div class="box hidden" id="vote">
-  <h2>Vota tutti (1–10)</h2>
+  <h2>Vota tutti i cantanti (1–10)</h2>
   <div id="artists"></div>
   <button id="btnSubmit">Invia voti</button>
 </div>
@@ -138,146 +124,160 @@ button{
 <div class="box hidden" id="presenter">
   <button id="btnShow">MOSTRA CLASSIFICA</button>
   <button id="btnReveal">RIVELA PODIO</button>
+  <button id="btnReset">RESET</button>
   <div id="ranking"></div>
-  <div id="countdown" class="hidden"></div>
   <div id="podium" class="hidden"></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* FIREBASE */
-const app=initializeApp({
+/* ===== FIREBASE ===== */
+const firebaseConfig={
   apiKey:"AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE",
   authDomain:"sanremo-2026.firebaseapp.com",
-  projectId:"sanremo-2026"
-});
+  projectId:"sanremo-2026",
+  storageBucket:"sanremo-2026.appspot.com",
+  messagingSenderId:"585160817288",
+  appId:"1:585160817288:web:71c4552fc2cfd73c9dfd3d"
+};
+const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 
+/* ===== CONFIG ===== */
 const PRESENTER_CODE="SANREMO26";
-
-/* ARTISTI */
-const artists=[ "Arisa – Magica favola","Bambole di Pezza – Resta con me","Chiello – Ti penso sempre",
-"Dargen D'Amico – AI AI","Ditonellapiaga – Che fastidio!","Eddie Brock – Avvoltoi",
-"Elettra Lamborghini – Voilà","Enrico Nigiotti – Ogni volta che non so volare",
-"Ermal Meta – Stella stellina","Fedez & Marco Masini – Male necessario",
-"Francesco Renga – Il meglio di me","Fulminacci – Stupida sfortuna","J-Ax – Italia",
-"LDA & Aka7even – Poesie clandestine","Leo Gassmann – Naturale","Levante – Sei tu",
-"Luchè – Labirinto","Malika Ayane – Animali notturni","Mara Sattei – Le cose che non sai di me",
-"Maria Antonietta & Colombre – La felicità e basta","Michele Bravi – Prima o poi",
-"Nayt – Prima che","Patty Pravo – Opera","Raf – Ora e per sempre",
-"Sal Da Vinci – Per sempre sì","Samurai Jay – Ossessione","Sayf – Tu mi piaci tanto",
-"Serena Brancale – Qui con me","Tommaso Paradiso – I romantici","Tredici Pietro – Uomo che cade" ];
+const artists=[/* lista 30 cantanti */ 
+"Arisa","Bambole di Pezza","Chiello","Dargen D'Amico","Ditonellapiaga",
+"Eddie Brock","Elettra Lamborghini","Enrico Nigiotti","Ermal Meta","Fedez & Masini",
+"Francesco Renga","Fulminacci","J-Ax","LDA & Aka7even","Leo Gassmann",
+"Levante","Luchè","Malika Ayane","Mara Sattei","Maria Antonietta",
+"Michele Bravi","Nayt","Patty Pravo","Raf","Sal Da Vinci",
+"Samurai Jay","Sayf","Serena Brancale","Tommaso Paradiso","Tredici Pietro"
+];
 
 let votes=Array(artists.length).fill(5);
 let top3=[];
 
-/* LOGIN */
+/* ===== ELEMENTI ===== */
+const login=document.getElementById("login");
+const voteBox=document.getElementById("vote");
+const presenter=document.getElementById("presenter");
+const artistsDiv=document.getElementById("artists");
+const ranking=document.getElementById("ranking");
+const podium=document.getElementById("podium");
+
+/* ===== LOGIN ===== */
 btnStart.onclick=()=>{
+  if(!nickname.value||!code.value)return alert("Compila tutto");
   login.classList.add("hidden");
-  if(code.value===PRESENTER_CODE) presenter.classList.remove("hidden");
-  else{ vote.classList.remove("hidden"); render(); }
+  if(code.value===PRESENTER_CODE){
+    presenter.classList.remove("hidden");
+  }else{
+    voteBox.classList.remove("hidden");
+    renderArtists();
+  }
 };
 
-/* VOTI */
-function render(){
+/* ===== VOTO ===== */
+function renderArtists(){
   artistsDiv.innerHTML="";
   artists.forEach((a,i)=>{
     const d=document.createElement("div");
-    d.innerHTML=`${a}<input type="range" min="1" max="10" value="5"><span> 5</span>`;
-    const r=d.querySelector("input"),s=d.querySelector("span");
-    r.oninput=()=>{s.textContent=" "+r.value;votes[i]=+r.value;}
+    d.className="artist";
+    d.innerHTML=`${a}<input type="range" min="1" max="10" value="1"><span> 1</span>`;
+    const r=d.querySelector("input");
+    const s=d.querySelector("span");
+    r.oninput=()=>{s.textContent=" "+r.value;votes[i]=+r.value};
     artistsDiv.appendChild(d);
   });
 }
 
 btnSubmit.onclick=async()=>{
   await addDoc(collection(db,"votes"),{votes});
-  alert("Voto inviato");
+  alert("Voto inviato!");
+  voteBox.classList.add("hidden");
 };
 
-/* CALCOLO */
+/* ===== CALCOLO ===== */
 async function calcola(){
   const snap=await getDocs(collection(db,"votes"));
-  let t=artists.map((a,i)=>{
+  let res=artists.map((a,i)=>{
     let s=0,c=0;
-    snap.forEach(d=>{const v=d.data().votes?.[i];if(v){s+=v;c++;}});
+    snap.forEach(d=>{if(d.data().votes?.[i]!=null){s+=d.data().votes[i];c++}});
     return {name:a,avg:c?s/c:0};
   }).sort((a,b)=>a.avg-b.avg);
-  top3=t.slice(-3).reverse();
-  return t.slice(0,-3);
+  top3=res.slice(-3).reverse();
+  return res.slice(0,-3);
 }
 
-/* CLASSIFICA */
+/* ===== CLASSIFICA PROGRESSIVA ===== */
 btnShow.onclick=async()=>{
   ranking.innerHTML="";
-  ranking.classList.remove("hidden");
-  const o=await calcola();
+  const others=await calcola();
   let i=0;
-  const timer=setInterval(()=>{
-    if(i>=o.length) return clearInterval(timer);
-    const t=o[i];
-    const b=document.createElement("div");
-    b.className="bar";
-    b.textContent=`${o.length-i+3}. ${t.name}`;
-    ranking.appendChild(b);
-    setTimeout(()=>b.style.width=(t.avg*10)+"%",100);
+
+  function reveal(){
+    if(i>=others.length)return;
+    const t=others[i];
+    const bar=document.createElement("div");
+    bar.className="bar";
+    bar.textContent=`${others.length-i+3}. ${t.name} – ${t.avg.toFixed(2)}`;
+    ranking.appendChild(bar);
+    requestAnimationFrame(()=>bar.style.width=(t.avg*10)+"%");
     i++;
-  },1500);
+    setTimeout(reveal,500);
+  }
+  reveal();
 };
 
-/* BEEP */
-function beep(){
-  const ctx=new AudioContext();
-  const o=ctx.createOscillator();
-  o.frequency.value=800;
-  o.connect(ctx.destination);
-  o.start();
-  setTimeout(()=>{o.stop();ctx.close()},120);
-}
-
-/* PODIO */
+/* ===== PODIO ===== */
 btnReveal.onclick=async()=>{
-  ranking.innerHTML="";
-  ranking.classList.add("hidden");
-
   document.documentElement.requestFullscreen?.();
+  document.body.classList.add("regia");
 
-  const countdown=document.getElementById("countdown");
-  countdown.classList.remove("hidden");
-  let n=10;
-
-  const timer=setInterval(()=>{
-    countdown.textContent=n;
-    beep();
-    n--;
-    if(n<0){
-      clearInterval(timer);
-      countdown.classList.add("hidden");
-      showPodio();
-    }
-  },1000);
-};
-
-function showPodio(){
+  await calcola();
   podium.innerHTML="";
   podium.classList.remove("hidden");
+
   const order=[2,1,0];
   let i=0;
-  function next(){
-    if(i>=3) return;
+
+  function show(){
+    if(i>=3)return;
     const t=top3[order[i]];
     const d=document.createElement("div");
-    d.className="podium-box gold";
-    d.innerHTML=`<div style="font-size:60px">${["🥇","🥈","🥉"][order[i]]}</div>
-                 <div>${t.name}</div>
-                 <div>${t.avg.toFixed(2)}</div>`;
+    d.className="podium-box";
+    d.innerHTML=`${["🥇","🥈","🥉"][order[i]]}<br>${t.name}<br>${t.avg.toFixed(2)}`;
     podium.appendChild(d);
-    i++; setTimeout(next,2000);
+    gold();
+    i++;
+    setTimeout(show,2000);
   }
-  next();
+  show();
+};
+
+/* ===== EFFETTO ORO ===== */
+function gold(){
+  for(let i=0;i<50;i++){
+    const p=document.createElement("div");
+    p.style=`position:fixed;width:8px;height:8px;background:gold;border-radius:50%;top:-10px;left:${Math.random()*100}vw`;
+    document.body.appendChild(p);
+    p.animate([{transform:"translateY(0)"},{transform:"translateY(100vh)",opacity:0}],{duration:2000});
+    setTimeout(()=>p.remove(),2200);
+  }
 }
+
+/* ===== RESET ===== */
+btnReset.onclick=async()=>{
+  if(!confirm("Reset totale?"))return;
+  const snap=await getDocs(collection(db,"votes"));
+  for(const d of snap.docs)await deleteDoc(doc(db,"votes",d.id));
+  ranking.innerHTML="";
+  podium.innerHTML="";
+  alert("Reset fatto");
+};
 </script>
 </body>
 </html>
