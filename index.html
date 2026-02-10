@@ -214,7 +214,32 @@ btnStart.onclick = () => {
     // MODALITÀ VOTANTE
     login.classList.add("hidden");
     voteBox.classList.remove("hidden");
-    renderArtists();
+    function renderArtists(){
+  artistsDiv.innerHTML = "";
+
+  artists.forEach((a, i) => {
+    const d = document.createElement("div");
+    d.className = "artist";
+
+    d.innerHTML = `
+      <strong>${a.name}</strong><br>
+      <em style="opacity:.8">${a.song}</em>
+      <input type="range" min="1" max="10" value="1">
+      <span> 1</span>
+    `;
+
+    const r = d.querySelector("input");
+    const s = d.querySelector("span");
+
+    r.oninput = () => {
+      s.textContent = " " + r.value;
+      votes[i] = +r.value;
+    };
+
+    artistsDiv.appendChild(d);
+  });
+}
+
 
   } else {
     alert("Codice non valido");
