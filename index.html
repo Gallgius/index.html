@@ -18,15 +18,26 @@ body{
 
 .hidden{display:none}
 
+/* LOGHI */
+#logos{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin-bottom:20px;
+}
+#logos img:first-child{max-width:320px;}
+#logos img:last-child{max-width:200px;}
+
+/* BOX */
 .box{
   max-width:1000px;
   margin:auto;
   background:rgba(0,0,0,.5);
   padding:25px;
   border-radius:14px;
+  margin-bottom:20px;
 }
 
-/* BOTTONI */
 input,button{
   width:100%;
   padding:12px;
@@ -35,6 +46,7 @@ input,button{
   border:none;
   font-size:16px
 }
+
 button{
   background:gold;
   color:black;
@@ -109,6 +121,12 @@ button{
 
 <body>
 
+<!-- LOGHI -->
+<div id="logos">
+  <img src="logo-sanremo-2026.png">
+  <img src="logo-cinema.png">
+</div>
+
 <div class="box" id="login">
   <input id="nickname" placeholder="Nickname">
   <input id="code" placeholder="Codice votante / Presentatore">
@@ -148,6 +166,7 @@ const db=getFirestore(app);
 const PRESENTER_CODE="SANREMO26";
 const VOTER_CODE="VOTO26";
 
+/* ARTISTI (metti quanti vuoi) */
 const artists=[
   {name:"Artista 1"},
   {name:"Artista 2"},
@@ -189,7 +208,6 @@ function renderArtists(){
     `;
     const r=d.querySelector("input");
     const s=d.querySelector("span");
-
     const update=()=>{
       const p=((r.value-1)/9)*100;
       r.style.background=`linear-gradient(to right,gold 0%,gold ${p}%,#ddd ${p}%,#ddd 100%)`;
@@ -212,6 +230,7 @@ btnSubmit.onclick=async()=>{
 /* CALCOLO */
 async function calcola(){
   const snap=await getDocs(collection(db,"votes"));
+
   let res=artists.map((a,i)=>{
     let s=0,c=0;
     snap.forEach(d=>{
@@ -220,11 +239,16 @@ async function calcola(){
     return{name:a.name,avg:c?s/c:0};
   }).sort((a,b)=>a.avg-b.avg);
 
+  if(res.length<=3){
+    top3=[...res].reverse();
+    return [];
+  }
+
   top3=res.slice(-3).reverse();
   return res.slice(0,res.length-3);
 }
 
-/* CLASSIFICA 30 → 4 */
+/* CLASSIFICA */
 btnShow.onclick=async()=>{
   podium.classList.add("hidden");
   winnerTitle.style.opacity=0;
@@ -232,6 +256,12 @@ btnShow.onclick=async()=>{
   ranking.classList.remove("hidden");
 
   const others=await calcola();
+
+  if(others.length===0){
+    ranking.innerHTML="<h3>Si passa direttamente al podio!</h3>";
+    return;
+  }
+
   let pos=artists.length;
   let i=0;
 
@@ -246,10 +276,11 @@ btnShow.onclick=async()=>{
     pos--; i++;
     setTimeout(reveal,400);
   }
+
   reveal();
 };
 
-/* FINALISSIMA */
+/* FINALISSIMA PODIO */
 btnReveal.onclick=async()=>{
   ranking.classList.add("hidden");
   ranking.innerHTML="";
@@ -267,7 +298,7 @@ btnReveal.onclick=async()=>{
   let i=0;
 
   function showNext(){
-    if(i>=3){
+    if(i>=top3.length){
       winnerTitle.innerHTML="🏆 VINCITORE 🏆<br>"+top3[0].name;
       winnerTitle.style.opacity=1;
       winnerTitle.style.transform="scale(1)";
@@ -275,16 +306,12 @@ btnReveal.onclick=async()=>{
     }
 
     const o=order[i];
-    const t=top3[o.index];
+    if(!top3[o.index]){i++;showNext();return;}
 
+    const t=top3[o.index];
     const box=document.createElement("div");
     box.className="podium-box "+o.class;
-    box.innerHTML=`
-      ${o.medal}<br>
-      ${t.name}<br>
-      ${t.avg.toFixed(2)}
-    `;
-
+    box.innerHTML=`${o.medal}<br>${t.name}<br>${t.avg.toFixed(2)}`;
     podium.appendChild(box);
 
     requestAnimationFrame(()=>{
@@ -312,3 +339,4 @@ btnReset.onclick=async()=>{
 </script>
 </body>
 </html>
+
