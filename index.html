@@ -18,22 +18,27 @@ body{
 
 .hidden{display:none}
 
-/* ===== LOGHI ===== */
+.fade-out{
+  opacity:0;
+  transition:opacity .6s ease;
+}
+
+.fade-in{
+  opacity:1;
+  transition:opacity .6s ease;
+}
+
+/* LOGHI */
 #logos{
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:0px;
   margin-bottom:10px;
 }
-#logos img:first-child{
-  max-width:320px;
-}
-#logos img:last-child{
-  max-width:200px;
-}
+#logos img:first-child{max-width:320px;}
+#logos img:last-child{max-width:200px;}
 
-/* ===== BOX ===== */
+/* BOX */
 .box{
   max-width:900px;
   margin:auto;
@@ -57,10 +62,9 @@ button{
   cursor:pointer
 }
 
-/* ===== VOTO ===== */
 .artist{margin:10px 0}
 
-/* ===== SLIDER ===== */
+/* SLIDER */
 input[type="range"] {
   -webkit-appearance: none;
   width: 100%;
@@ -68,50 +72,29 @@ input[type="range"] {
   background: #ddd;
   border-radius: 6px;
   outline: none;
-  position: relative;
-}
-
-/* Chrome, Edge, Safari */
-input[type="range"]::-webkit-slider-runnable-track {
-  height: 12px;
-  border-radius: 6px;
-  background: #ddd;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   background: radial-gradient(circle, gold 60%, orange 100%);
   border-radius: 50%;
   border: 2px solid orange;
   cursor: pointer;
-  box-shadow: 0 0 8px gold, 0 0 16px rgba(255, 215, 0, 0.5);
-  transition: transform 0.1s;
-  margin-top: -8px;
-}
-input[type="range"]:hover::-webkit-slider-thumb {
-  transform: scale(1.2);
-  box-shadow: 0 0 12px gold, 0 0 24px rgba(255, 215, 0, 0.7);
+  margin-top:-7px;
 }
 
-/* Firefox */
 input[type="range"]::-moz-range-thumb {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   background: radial-gradient(circle, gold 60%, orange 100%);
   border-radius: 50%;
   border: 2px solid orange;
   cursor: pointer;
-  box-shadow: 0 0 8px gold, 0 0 16px rgba(255, 215, 0, 0.5);
-  transition: transform 0.1s;
-}
-input[type="range"]:hover::-moz-range-thumb {
-  transform: scale(1.2);
-  box-shadow: 0 0 12px gold, 0 0 24px rgba(255, 215, 0, 0.7);
 }
 
-/* ===== CLASSIFICA ===== */
+/* CLASSIFICA */
 .bar{
   background:linear-gradient(90deg,gold,orange);
   height:28px;
@@ -125,13 +108,15 @@ input[type="range"]:hover::-moz-range-thumb {
   transition:width 1s;
 }
 
-/* ===== PODIO ===== */
+/* PODIO */
 #podium{
   display:flex;
   justify-content:center;
   gap:20px;
   margin:30px 0;
+  opacity:0;
 }
+
 .podium-box{
   background:gold;
   color:black;
@@ -143,23 +128,20 @@ input[type="range"]:hover::-moz-range-thumb {
   font-size:18px;
 }
 
-/* ===== REGIA ===== */
 .regia input,
 .regia button,
 .regia h1{
   display:none!important;
 }
-.regia .box{
-  background:none;
-}
+.regia .box{background:none;}
 </style>
 </head>
 
 <body>
 
 <div id="logos">
-  <img src="logo-sanremo-2026.png" alt="Sanremo 2026">
-  <img src="logo-cinema.png" alt="Cinema">
+  <img src="logo-sanremo-2026.png">
+  <img src="logo-cinema.png">
 </div>
 
 <div class="box" id="login">
@@ -179,7 +161,7 @@ input[type="range"]:hover::-moz-range-thumb {
   <button id="btnReveal">RIVELA PODIO</button>
   <button id="btnReset">RESET</button>
   <div id="ranking"></div>
-  <div id="podium" class="hidden"></div>
+  <div id="podium"></div>
 </div>
 
 <script type="module">
@@ -187,238 +169,145 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ===== FIREBASE ===== */
 const firebaseConfig={
-  apiKey:"AIzaSyCwqBPd1zFT5SM6e2oUqD09UIF8kOcNisE",
+  apiKey:"YOUR_KEY",
   authDomain:"sanremo-2026.firebaseapp.com",
   projectId:"sanremo-2026",
-  storageBucket:"sanremo-2026.appspot.com",
-  messagingSenderId:"585160817288",
-  appId:"1:585160817288:web:71c4552fc2cfd73c9dfd3d"
 };
 const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 
-/* ===== CONFIG ===== */
-const PRESENTER_CODE = "SANREMO26";
-const VOTER_CODE = "VOTO26";
+const PRESENTER_CODE="SANREMO26";
+const VOTER_CODE="VOTO26";
 
-const artists = [
-  { name: "Arisa", song: "Magica favola" },
-  { name: "Bambole di Pezza", song: "Resta con me" },
-  { name: "Chiello", song: "Ti penso sempre" },
-  { name: "Dargen D'Amico", song: "AI AI" },
-  { name: "Ditonellapiaga", song: "Che fastidio!" },
-  { name: "Eddie Brock", song: "Avvoltoi" },
-  { name: "Elettra Lamborghini", song: "Voilà" },
-  { name: "Enrico Nigiotti", song: "Ogni volta che non so volare" },
-  { name: "Ermal Meta", song: "Stella stellina" },
-  { name: "Fedez & Marco Masini", song: "Male necessario" },
-  { name: "Francesco Renga", song: "Il meglio di me" },
-  { name: "Fulminacci", song: "Stupida sfortuna" },
-  { name: "J-Ax", song: "Italia" },
-  { name: "LDA & Aka7even", song: "Poesie clandestine" },
-  { name: "Leo Gassmann", song: "Naturale" },
-  { name: "Levante", song: "Sei tu" },
-  { name: "Luchè", song: "Labirinto" },
-  { name: "Malika Ayane", song: "Animali notturni" },
-  { name: "Mara Sattei", song: "Le cose che non sai di me" },
-  { name: "Maria Antonietta & Colombre", song: "La felicità e basta" },
-  { name: "Michele Bravi", song: "Prima o poi" },
-  { name: "Nayt", song: "Prima che" },
-  { name: "Patty Pravo", song: "Opera" },
-  { name: "Raf", song: "Ora e per sempre" },
-  { name: "Sal Da Vinci", song: "Per sempre sì" },
-  { name: "Samurai Jay", song: "Ossessione" },
-  { name: "Sayf", song: "Tu mi piaci tanto" },
-  { name: "Serena Brancale", song: "Qui con me" },
-  { name: "Tommaso Paradiso", song: "I romantici" },
-  { name: "Tredici Pietro", song: "Uomo che cade" }
+const artists=[
+  {name:"Arisa",song:"Magica favola"},
+  {name:"Chiello",song:"Ti penso sempre"},
+  {name:"Ermal Meta",song:"Stella stellina"}
 ];
 
-let votes = Array(artists.length).fill(5);
+let votes=Array(artists.length).fill(5);
 let top3=[];
 
-/* ===== ELEMENTI ===== */
-const login = document.getElementById("login");
-const voteBox = document.getElementById("vote");
-const presenter = document.getElementById("presenter");
-const artistsDiv = document.getElementById("artists");
-const ranking = document.getElementById("ranking");
-const podium = document.getElementById("podium");
+const login=document.getElementById("login");
+const voteBox=document.getElementById("vote");
+const presenter=document.getElementById("presenter");
+const artistsDiv=document.getElementById("artists");
+const ranking=document.getElementById("ranking");
+const podium=document.getElementById("podium");
 
-const btnStart = document.getElementById("btnStart");
-const btnSubmit = document.getElementById("btnSubmit");
-const btnShow = document.getElementById("btnShow");
-const btnReveal = document.getElementById("btnReveal");
-const btnReset = document.getElementById("btnReset");
-
-const nickname = document.getElementById("nickname");
-const code = document.getElementById("code");
-
-/* ===== LOGIN ===== */
-btnStart.onclick = () => {
-  if (!nickname.value || !code.value) {
-    alert("Compila tutto");
-    return;
-  }
-
+btnStart.onclick=()=>{
+  if(!nickname.value||!code.value){alert("Compila tutto");return;}
   login.classList.add("hidden");
-
-  if (code.value === PRESENTER_CODE) {
-    presenter.classList.remove("hidden");
-  } else if (code.value === VOTER_CODE) {
-    voteBox.classList.remove("hidden");
-    renderArtists();
-  } else {
-    alert("Codice non valido");
-    login.classList.remove("hidden");
-  }
+  if(code.value===PRESENTER_CODE) presenter.classList.remove("hidden");
+  else if(code.value===VOTER_CODE){voteBox.classList.remove("hidden");renderArtists();}
+  else{alert("Codice non valido");login.classList.remove("hidden");}
 };
 
-/* ===== VOTO ===== */
-function renderArtists() {
-  artistsDiv.innerHTML = "";
-
-  artists.forEach((a, i) => {
-    const d = document.createElement("div");
-    d.className = "artist";
-
-    d.innerHTML = `
+function renderArtists(){
+  artistsDiv.innerHTML="";
+  artists.forEach((a,i)=>{
+    const d=document.createElement("div");
+    d.className="artist";
+    d.innerHTML=`
       <strong>${a.name}</strong><br>
-      <em style="opacity:.8">${a.song}</em><br>
+      <em>${a.song}</em><br>
       <input type="range" min="1" max="10" value="5">
       <span> 5</span>
     `;
+    const r=d.querySelector("input");
+    const s=d.querySelector("span");
 
-    const r = d.querySelector("input");
-    const s = d.querySelector("span");
-
-    const updateSliderColor = () => {
-      const percent = ((r.value - r.min) / (r.max - r.min)) * 100;
-      r.style.background = `linear-gradient(to right, gold 0%, gold ${percent}%, #ddd ${percent}%, #ddd 100%)`;
-      s.textContent = " " + r.value;
-      votes[i] = +r.value;
-
-      // piccole scintille dorate
-      for (let j = 0; j < 2; j++) {
-        const sparkle = document.createElement("div");
-        sparkle.style.cssText = `
-          position: absolute;
-          width: 6px; height: 6px;
-          background: gold;
-          border-radius: 50%;
-          top: ${Math.random()*20-5}px;
-          left: ${percent + Math.random()*2 - 1}%;
-          opacity: 0.8;
-          pointer-events: none;
-          z-index: 1000;
-        `;
-        r.parentElement.appendChild(sparkle);
-        sparkle.animate([{ transform: 'translateY(0)', opacity: 0.8 }, { transform: 'translateY(-20px)', opacity: 0 }], { duration: 600 });
-        setTimeout(() => sparkle.remove(), 600);
-      }
+    const update=()=>{
+      const percent=((r.value-r.min)/(r.max-r.min))*100;
+      r.style.background=`linear-gradient(to right,gold 0%,gold ${percent}%,#ddd ${percent}%,#ddd 100%)`;
+      s.textContent=" "+r.value;
+      votes[i]=+r.value;
     };
-
-    r.addEventListener("input", updateSliderColor);
-    updateSliderColor();
-
+    r.addEventListener("input",update);
+    update();
     artistsDiv.appendChild(d);
   });
 }
 
-btnSubmit.onclick = async () => {
-  await addDoc(collection(db,"votes"), {votes});
+btnSubmit.onclick=async()=>{
+  await addDoc(collection(db,"votes"),{votes});
   alert("Voto inviato!");
   voteBox.classList.add("hidden");
 };
 
-/* ===== CALCOLO ===== */
-async function calcola() {
-  const snap = await getDocs(collection(db,"votes"));
-
-  let res = artists.map((a, i) => {
-    let s = 0, c = 0;
-
-    snap.forEach(d => {
-      if (d.data().votes && d.data().votes[i] != null) {
-        s += d.data().votes[i];
-        c++;
-      }
+async function calcola(){
+  const snap=await getDocs(collection(db,"votes"));
+  let res=artists.map((a,i)=>{
+    let s=0,c=0;
+    snap.forEach(d=>{
+      if(d.data().votes[i]!=null){s+=d.data().votes[i];c++;}
     });
-
-    return { name: a.name, song: a.song, avg: c ? s / c : 0 };
-  }).sort((a,b) => a.avg - b.avg);
-
-  top3 = res.slice(-3).reverse();
-  return res.slice(0, -3);
+    return{name:a.name,avg:c?s/c:0};
+  }).sort((a,b)=>a.avg-b.avg);
+  top3=res.slice(-3).reverse();
+  return res.slice(0,-3);
 }
 
-/* ===== CLASSIFICA ===== */
-btnShow.onclick = async () => {
-  ranking.innerHTML = "";
-  const others = await calcola();
-  let i = 0;
-
-  function reveal() {
-    if (i >= others.length) return;
-    const t = others[i];
-    const bar = document.createElement("div");
-    bar.className = "bar";
-    bar.textContent = `${others.length - i + 3}. ${t.name} – ${t.avg.toFixed(2)}`;
+/* MOSTRA CLASSIFICA */
+btnShow.onclick=async()=>{
+  podium.style.opacity=0;
+  setTimeout(()=>podium.innerHTML="",500);
+  ranking.classList.remove("fade-out");
+  ranking.style.opacity=1;
+  ranking.innerHTML="";
+  const others=await calcola();
+  let i=0;
+  function reveal(){
+    if(i>=others.length)return;
+    const t=others[i];
+    const bar=document.createElement("div");
+    bar.className="bar";
+    bar.textContent=`${others.length-i+3}. ${t.name} – ${t.avg.toFixed(2)}`;
     ranking.appendChild(bar);
-    requestAnimationFrame(() => bar.style.width = (t.avg*10)+"%");
-    i++;
-    setTimeout(reveal, 500);
+    requestAnimationFrame(()=>bar.style.width=(t.avg*10)+"%");
+    i++; setTimeout(reveal,500);
   }
   reveal();
 };
 
-/* ===== PODIO ===== */
-btnReveal.onclick = async () => {
-  document.documentElement.requestFullscreen?.();
-  document.body.classList.add("regia");
+/* RIVELA PODIO */
+btnReveal.onclick=async()=>{
+  ranking.classList.add("fade-out");
+  setTimeout(()=>ranking.innerHTML="",600);
+
   await calcola();
-  podium.innerHTML = "";
-  podium.classList.remove("hidden");
+  podium.innerHTML="";
+  podium.style.opacity=0;
 
-  const order = [2,1,0];
-  let i = 0;
+  const order=[2,1,0];
+  let i=0;
 
-  function show() {
-    if (i >= 3) return;
-    const t = top3[order[i]];
-    const d = document.createElement("div");
-    d.className = "podium-box";
-    d.innerHTML = `${["🥇","🥈","🥉"][order[i]]}<br>${t.name}<br>${t.avg.toFixed(2)}`;
+  function show(){
+    if(i>=3){
+      podium.style.transition="opacity .8s ease";
+      podium.style.opacity=1;
+      return;
+    }
+    const t=top3[order[i]];
+    const d=document.createElement("div");
+    d.className="podium-box";
+    d.innerHTML=`${["🥇","🥈","🥉"][order[i]]}<br>${t.name}<br>${t.avg.toFixed(2)}`;
     podium.appendChild(d);
-    gold();
-    i++;
-    setTimeout(show,2000);
+    i++; setTimeout(show,1200);
   }
   show();
 };
 
-/* ===== EFFETTO ORO ===== */
-function gold() {
-  for(let i=0;i<50;i++){
-    const p=document.createElement("div");
-    p.style=`position:fixed;width:8px;height:8px;background:gold;border-radius:50%;top:-10px;left:${Math.random()*100}vw`;
-    document.body.appendChild(p);
-    p.animate([{transform:"translateY(0)"},{transform:"translateY(100vh)",opacity:0}],{duration:2000});
-    setTimeout(()=>p.remove(),2200);
-  }
-}
-
-/* ===== RESET ===== */
-btnReset.onclick = async () => {
-  if (!confirm("Reset totale?")) return;
-  const snap = await getDocs(collection(db,"votes"));
-  for (const d of snap.docs) await deleteDoc(doc(db,"votes",d.id));
-  ranking.innerHTML = "";
-  podium.innerHTML = "";
+btnReset.onclick=async()=>{
+  if(!confirm("Reset totale?"))return;
+  const snap=await getDocs(collection(db,"votes"));
+  for(const d of snap.docs)await deleteDoc(doc(db,"votes",d.id));
+  ranking.innerHTML="";
+  podium.innerHTML="";
   alert("Reset fatto");
 };
 </script>
 </body>
 </html>
+
