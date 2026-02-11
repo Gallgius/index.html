@@ -255,39 +255,6 @@ function renderArtists(){
 }
 
 
-  } else {
-    alert("Codice non valido");
-  }
-};
-
-/* ===== VOTO ===== */
-function renderArtists(){
-  artistsDiv.innerHTML = "";
-
-  artists.forEach((a, i) => {
-    const d = document.createElement("div");
-    d.className = "artist";
-
-    d.innerHTML = `
-      <strong>${a.name}</strong><br>
-      <em>${a.song}</em><br>
-      <input type="range" min="1" max="10" value="1">
-      <span> 1</span>
-    `;
-
-    const r = d.querySelector("input");
-    const s = d.querySelector("span");
-
-    r.oninput = () => {
-      s.textContent = " " + r.value;
-      votes[i] = +r.value;
-    };
-
-    artistsDiv.appendChild(d);
-  });
-}
-
-
 btnSubmit.onclick=async()=>{
   await addDoc(collection(db,"votes"),{votes});
   alert("Voto inviato!");
