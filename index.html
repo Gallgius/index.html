@@ -18,16 +18,6 @@ body{
 
 .hidden{display:none}
 
-.fade-out{
-  opacity:0;
-  transition:opacity .6s ease;
-}
-
-.fade-in{
-  opacity:1;
-  transition:opacity .6s ease;
-}
-
 /* LOGHI */
 #logos{
   display:flex;
@@ -55,6 +45,7 @@ input,button{
   border:none;
   font-size:16px
 }
+
 button{
   background:gold;
   color:black;
@@ -114,7 +105,6 @@ input[type="range"]::-moz-range-thumb {
   justify-content:center;
   gap:20px;
   margin:30px 0;
-  opacity:0;
 }
 
 .podium-box{
@@ -126,14 +116,10 @@ input[type="range"]::-moz-range-thumb {
   width:30%;
   font-weight:bold;
   font-size:18px;
+  opacity:0;
+  transform:translateY(40px);
+  transition:all .6s ease;
 }
-
-.regia input,
-.regia button,
-.regia h1{
-  display:none!important;
-}
-.regia .box{background:none;}
 </style>
 </head>
 
@@ -161,7 +147,7 @@ input[type="range"]::-moz-range-thumb {
   <button id="btnReveal">RIVELA PODIO</button>
   <button id="btnReset">RESET</button>
   <div id="ranking"></div>
-  <div id="podium"></div>
+  <div id="podium" class="hidden"></div>
 </div>
 
 <script type="module">
@@ -169,6 +155,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* FIREBASE */
 const firebaseConfig={
   apiKey:"YOUR_KEY",
   authDomain:"sanremo-2026.firebaseapp.com",
@@ -177,6 +164,7 @@ const firebaseConfig={
 const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 
+/* CONFIG */
 const PRESENTER_CODE="SANREMO26";
 const VOTER_CODE="VOTO26";
 
@@ -189,6 +177,7 @@ const artists=[
 let votes=Array(artists.length).fill(5);
 let top3=[];
 
+/* ELEMENTI */
 const login=document.getElementById("login");
 const voteBox=document.getElementById("vote");
 const presenter=document.getElementById("presenter");
@@ -196,6 +185,7 @@ const artistsDiv=document.getElementById("artists");
 const ranking=document.getElementById("ranking");
 const podium=document.getElementById("podium");
 
+/* LOGIN */
 btnStart.onclick=()=>{
   if(!nickname.value||!code.value){alert("Compila tutto");return;}
   login.classList.add("hidden");
@@ -204,6 +194,7 @@ btnStart.onclick=()=>{
   else{alert("Codice non valido");login.classList.remove("hidden");}
 };
 
+/* RENDER SLIDER */
 function renderArtists(){
   artistsDiv.innerHTML="";
   artists.forEach((a,i)=>{
@@ -230,12 +221,14 @@ function renderArtists(){
   });
 }
 
+/* INVIO VOTO */
 btnSubmit.onclick=async()=>{
   await addDoc(collection(db,"votes"),{votes});
   alert("Voto inviato!");
   voteBox.classList.add("hidden");
 };
 
+/* CALCOLO */
 async function calcola(){
   const snap=await getDocs(collection(db,"votes"));
   let res=artists.map((a,i)=>{
@@ -251,13 +244,14 @@ async function calcola(){
 
 /* MOSTRA CLASSIFICA */
 btnShow.onclick=async()=>{
-  podium.style.opacity=0;
-  setTimeout(()=>podium.innerHTML="",500);
-  ranking.classList.remove("fade-out");
-  ranking.style.opacity=1;
+  podium.classList.add("hidden");
+  podium.innerHTML="";
+  ranking.classList.remove("hidden");
   ranking.innerHTML="";
+
   const others=await calcola();
   let i=0;
+
   function reveal(){
     if(i>=others.length)return;
     const t=others[i];
@@ -273,32 +267,43 @@ btnShow.onclick=async()=>{
 
 /* RIVELA PODIO */
 btnReveal.onclick=async()=>{
-  ranking.classList.add("fade-out");
-  setTimeout(()=>ranking.innerHTML="",600);
+  ranking.classList.add("hidden");
+  ranking.innerHTML="";
 
   await calcola();
+
   podium.innerHTML="";
-  podium.style.opacity=0;
+  podium.classList.remove("hidden");
 
   const order=[2,1,0];
   let i=0;
 
-  function show(){
-    if(i>=3){
-      podium.style.transition="opacity .8s ease";
-      podium.style.opacity=1;
-      return;
-    }
+  function showOne(){
+    if(i>=3)return;
+
     const t=top3[order[i]];
-    const d=document.createElement("div");
-    d.className="podium-box";
-    d.innerHTML=`${["🥇","🥈","🥉"][order[i]]}<br>${t.name}<br>${t.avg.toFixed(2)}`;
-    podium.appendChild(d);
-    i++; setTimeout(show,1200);
+    const box=document.createElement("div");
+    box.className="podium-box";
+    box.innerHTML=`
+      ${["🥇","🥈","🥉"][order[i]]}<br>
+      ${t.name}<br>
+      ${t.avg.toFixed(2)}
+    `;
+    podium.appendChild(box);
+
+    requestAnimationFrame(()=>{
+      box.style.opacity=1;
+      box.style.transform="translateY(0)";
+    });
+
+    i++;
+    setTimeout(showOne,1200);
   }
-  show();
+
+  showOne();
 };
 
+/* RESET */
 btnReset.onclick=async()=>{
   if(!confirm("Reset totale?"))return;
   const snap=await getDocs(collection(db,"votes"));
