@@ -167,12 +167,37 @@ const PRESENTER_CODE="SANREMO26";
 const VOTER_CODE="VOTO26";
 
 /* ARTISTI (metti quanti vuoi) */
-const artists=[
-  {name:"Artista 1"},
-  {name:"Artista 2"},
-  {name:"Artista 3"},
-  {name:"Artista 4"},
-  {name:"Artista 5"}
+const artists = [
+  { name: "Arisa", song: "Magica favola" },
+  { name: "Bambole di Pezza", song: "Resta con me" },
+  { name: "Chiello", song: "Ti penso sempre" },
+  { name: "Dargen D'Amico", song: "AI AI" },
+  { name: "Ditonellapiaga", song: "Che fastidio!" },
+  { name: "Eddie Brock", song: "Avvoltoi" },
+  { name: "Elettra Lamborghini", song: "Voilà" },
+  { name: "Enrico Nigiotti", song: "Ogni volta che non so volare" },
+  { name: "Ermal Meta", song: "Stella stellina" },
+  { name: "Fedez & Marco Masini", song: "Male necessario" },
+  { name: "Francesco Renga", song: "Il meglio di me" },
+  { name: "Fulminacci", song: "Stupida sfortuna" },
+  { name: "J-Ax", song: "Italia" },
+  { name: "LDA & Aka7even", song: "Poesie clandestine" },
+  { name: "Leo Gassmann", song: "Naturale" },
+  { name: "Levante", song: "Sei tu" },
+  { name: "Luchè", song: "Labirinto" },
+  { name: "Malika Ayane", song: "Animali notturni" },
+  { name: "Mara Sattei", song: "Le cose che non sai di me" },
+  { name: "Maria Antonietta & Colombre", song: "La felicità e basta" },
+  { name: "Michele Bravi", song: "Prima o poi" },
+  { name: "Nayt", song: "Prima che" },
+  { name: "Patty Pravo", song: "Opera" },
+  { name: "Raf", song: "Ora e per sempre" },
+  { name: "Sal Da Vinci", song: "Per sempre sì" },
+  { name: "Samurai Jay", song: "Ossessione" },
+  { name: "Sayf", song: "Tu mi piaci tanto" },
+  { name: "Serena Brancale", song: "Qui con me" },
+  { name: "Tommaso Paradiso", song: "I romantici" },
+  { name: "Tredici Pietro", song: "Uomo che cade" }
 ];
 
 let votes=Array(artists.length).fill(5);
@@ -201,11 +226,13 @@ function renderArtists(){
   artistsDiv.innerHTML="";
   artists.forEach((a,i)=>{
     const d=document.createElement("div");
-    d.innerHTML=`
-      <strong>${a.name}</strong><br>
-      <input type="range" min="1" max="10" value="5">
-      <span> 5</span>
-    `;
+   d.innerHTML=`
+  <strong>${a.name}</strong><br>
+  <em>${a.song}</em><br>
+  <input type="range" min="1" max="10" value="5">
+  <span> 5</span>
+`;
+
     const r=d.querySelector("input");
     const s=d.querySelector("span");
     const update=()=>{
